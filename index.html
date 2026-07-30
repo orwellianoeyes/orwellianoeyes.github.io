@@ -1,0 +1,657 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Orwelliano Eyes — Tecnología, política y govtech</title>
+<meta name="description" content="Notas sobre tecnología, política y govtech desde Córdoba.">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;700;800&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,600;1,6..72,400&family=Archivo+Narrow:wght@500;600&display=swap" rel="stylesheet">
+
+<style>
+:root{
+  --ink:#060606;
+  --paper:#E3E3E3;
+  --dim:#8A8A8A;
+  --rule:rgba(227,227,227,.15);
+
+  --tecnologia:#FFC738;
+  --politica:#FF634B;
+  --govtech:#6CAA6D;
+  --c:var(--paper);
+
+  --display:'Archivo',Helvetica,Arial,sans-serif;
+  --body:'Newsreader',Georgia,serif;
+  --util:'Archivo Narrow','Archivo',Helvetica,sans-serif;
+
+  --max:64rem;
+}
+
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{
+  margin:0;
+  background:var(--ink);
+  color:var(--paper);
+  font-family:var(--body);
+  font-size:1.15rem;
+  line-height:1.6;
+  font-optical-sizing:auto;
+}
+a{color:inherit}
+:focus-visible{outline:2px solid var(--c);outline-offset:3px}
+
+/* ---------- CABECERA ---------- */
+.masthead{border-bottom:1px solid var(--rule);padding:2.2rem 1.5rem 0;overflow:hidden}
+.masthead-in{max-width:var(--max);margin:0 auto}
+
+/* Ojo grande detrás del nombre. Para hacerlo más o menos visible,
+   cambiá el valor de opacity (ahora .07). */
+.marca{position:relative}
+.ojo-fondo{
+  position:absolute;
+  top:50%;left:-5%;
+  transform:translateY(-50%);
+  width:clamp(340px,88vw,720px);
+  height:auto;
+  color:var(--paper);
+  opacity:.07;
+  pointer-events:none;
+  z-index:0;
+}
+.ojo-fondo *{fill:none;stroke:currentColor;stroke-width:1.2;vector-effect:non-scaling-stroke}
+.ojo-fondo .pupila-fondo{fill:currentColor;stroke:none}
+.marca .logo{position:relative;z-index:1}
+
+/* Tamaño del ojo: mínimo en celular / proporcional / techo en pantallas grandes.
+   Si lo querés distinto, cambiá solo el tercer valor (168px). */
+.ojo{
+  width:clamp(90px,15vw,168px);
+  height:auto;display:block;
+  color:var(--politica);
+  margin-bottom:1.3rem;
+}
+.ojo .lente{fill:none;stroke:currentColor;stroke-width:1.9}
+.ojo .iris{fill:none;stroke:currentColor;stroke-width:1.6}
+.ojo .pupila{fill:currentColor}
+.ojo .globo{fill:var(--ink)}
+
+.logo{
+  font-family:var(--display);
+  font-weight:800;
+  font-size:clamp(2.3rem,8.5vw,4.4rem);
+  letter-spacing:-.045em;
+  line-height:.92;
+  margin:0;
+  text-transform:uppercase;
+}
+.tagline{
+  font-family:var(--util);
+  font-weight:500;
+  font-size:.78rem;
+  letter-spacing:.2em;
+  text-transform:uppercase;
+  color:var(--dim);
+  margin:.9rem 0 0;
+}
+
+.estado{
+  font-family:var(--util);
+  font-weight:600;
+  font-size:.74rem;
+  letter-spacing:.14em;
+  color:var(--dim);
+  text-transform:uppercase;
+  border-top:1px solid var(--rule);
+  margin-top:1.6rem;
+  padding:.75rem 0;
+  display:flex;flex-wrap:wrap;gap:1.2rem;
+}
+.estado b{color:var(--paper);font-weight:600}
+.estado .pip{display:inline-block;width:.5rem;height:.5rem;border-radius:50%;margin-right:.45rem}
+
+.filtros{
+  display:flex;flex-wrap:wrap;gap:.4rem;
+  border-top:1px solid var(--rule);
+  padding:.85rem 0 1rem;
+}
+.filtros button{
+  font-family:var(--util);font-weight:600;
+  font-size:.76rem;letter-spacing:.14em;text-transform:uppercase;
+  color:var(--dim);background:none;border:1px solid var(--rule);
+  padding:.45rem .85rem;cursor:pointer;
+  transition:color .15s,border-color .15s;
+}
+.filtros button:hover{color:var(--paper)}
+.filtros button[aria-pressed="true"]{color:var(--ink);background:var(--paper);border-color:var(--paper)}
+
+.busqueda{margin-left:auto;display:flex;align-items:center;gap:.5rem}
+.busqueda input{
+  font-family:var(--util);font-weight:500;
+  font-size:.82rem;letter-spacing:.06em;
+  color:var(--paper);background:none;
+  border:0;border-bottom:1px solid var(--rule);
+  padding:.4rem .1rem;width:11rem;
+}
+.busqueda input::placeholder{color:var(--dim);text-transform:uppercase;letter-spacing:.14em;font-size:.74rem}
+.busqueda input:focus{outline:none;border-bottom-color:var(--politica)}
+
+/* ---------- LISTA ---------- */
+main{max-width:var(--max);margin:0 auto;padding:0 1.5rem}
+
+.post[data-cat="tecnologia"]{--c:var(--tecnologia)}
+.post[data-cat="politica"]{--c:var(--politica)}
+.post[data-cat="govtech"]{--c:var(--govtech)}
+
+.post{
+  border-bottom:1px solid var(--rule);
+  padding:2.2rem 0 2.4rem;
+  border-left:2px solid transparent;
+  transition:border-color .15s,padding-left .15s;
+  display:grid;
+  grid-template-columns:1fr 64px;
+  column-gap:2rem;
+}
+.post:hover{border-left-color:var(--c);padding-left:1.1rem}
+
+/* Sello: iris único generado a partir del id de la nota */
+.sello{grid-column:2;grid-row:1 / span 4;align-self:start;color:var(--c);opacity:.85}
+.sello svg{width:100%;height:auto;display:block}
+
+.post-meta{
+  grid-column:1;
+  font-family:var(--util);font-weight:600;
+  font-size:.72rem;letter-spacing:.15em;text-transform:uppercase;
+  color:var(--dim);
+  display:flex;flex-wrap:wrap;gap:1rem;
+  margin-bottom:.85rem;
+}
+.post-meta .cat{color:var(--c)}
+
+.post h2{
+  grid-column:1;
+  font-family:var(--display);font-weight:800;
+  letter-spacing:-.032em;line-height:1.04;
+  font-size:clamp(1.65rem,4.2vw,2.5rem);
+  margin:0;
+}
+.post h2 button{
+  font:inherit;color:inherit;background:none;border:0;padding:0;
+  text-align:left;cursor:pointer;letter-spacing:inherit;
+}
+.post h2 button:hover{color:var(--c)}
+
+.bajada{grid-column:1;color:var(--dim);margin:.85rem 0 0;max-width:42rem}
+.leer{
+  grid-column:1;justify-self:start;
+  font-family:var(--util);font-weight:600;
+  font-size:.74rem;letter-spacing:.15em;text-transform:uppercase;
+  color:var(--c);background:none;border:0;padding:0;margin-top:1.2rem;cursor:pointer;
+}
+.leer:hover{text-decoration:underline}
+
+.post.destacado h2{font-size:clamp(2.1rem,7vw,3.5rem)}
+.post.destacado .bajada{font-size:1.3rem;color:var(--paper)}
+.post.destacado{grid-template-columns:1fr 96px}
+
+/* ---------- LECTURA ---------- */
+.cuerpo{display:none;grid-column:1}
+
+body.leyendo .post{display:none;border-left-color:transparent;padding-left:0}
+body.leyendo .post.abierto{display:grid;border-bottom:0;padding-top:1.2rem}
+body.leyendo .filtros,body.leyendo .estado{display:none}
+body.leyendo .post.abierto .leer{display:none}
+body.leyendo .post.abierto .cuerpo{display:block}
+
+.post.abierto .cuerpo{
+  max-width:37rem;margin-top:2.2rem;
+  border-top:1px solid var(--rule);padding-top:2.2rem;
+}
+.cuerpo p{margin:0 0 1.5rem}
+.cuerpo h3{
+  font-family:var(--display);font-weight:700;letter-spacing:-.02em;
+  font-size:1.3rem;margin:2.6rem 0 .8rem;
+}
+.cuerpo blockquote{
+  margin:2.2rem 0;padding-left:1.3rem;border-left:2px solid var(--c);
+  color:var(--dim);font-style:italic;font-size:1.25rem;line-height:1.5;
+}
+.cuerpo a{color:var(--c);text-underline-offset:3px}
+.cuerpo ul,.cuerpo ol{padding-left:1.3rem;margin:0 0 1.5rem}
+.cuerpo li{margin-bottom:.5rem}
+.cuerpo img{width:100%;height:auto;display:block;margin:2.2rem 0 .6rem}
+.cuerpo figure{margin:2.2rem 0}
+.cuerpo figure img{margin:0}
+.cuerpo figcaption{
+  font-family:var(--util);font-size:.74rem;letter-spacing:.1em;
+  text-transform:uppercase;color:var(--dim);margin-top:.6rem;
+}
+
+.volver{
+  display:none;
+  font-family:var(--util);font-weight:600;
+  font-size:.76rem;letter-spacing:.15em;text-transform:uppercase;
+  color:var(--dim);background:none;border:0;padding:1.8rem 0 0;cursor:pointer;
+}
+body.leyendo .volver{display:block}
+.volver:hover{color:var(--paper)}
+
+/* ---------- BUSCADOR / FILTRO / ARCHIVO ---------- */
+.oculto-busqueda{display:none}
+
+.divisor{
+  display:none;
+  align-items:baseline;justify-content:space-between;gap:1rem;
+  font-family:var(--util);font-weight:600;
+  font-size:.74rem;letter-spacing:.16em;text-transform:uppercase;
+  color:var(--dim);
+  border-bottom:1px solid var(--rule);
+  margin-top:3.2rem;padding-bottom:.7rem;
+}
+main.modo-archivo .divisor{display:flex}
+
+/* Fila compacta del archivo: la misma nota, mostrada como índice */
+.post.en-archivo{
+  grid-template-columns:1fr auto;
+  align-items:baseline;
+  column-gap:1.5rem;
+  padding:.8rem 0;
+  border-left-width:0;
+}
+.post.en-archivo:hover{padding-left:0}
+.post.en-archivo:hover h2 button{color:var(--c)}
+.post.en-archivo .sello,
+.post.en-archivo .bajada,
+.post.en-archivo .leer,
+.post.en-archivo .tiempo{display:none}
+.post.en-archivo h2{
+  grid-column:1;grid-row:1;
+  font-size:1.05rem;font-weight:600;letter-spacing:-.005em;line-height:1.35;
+}
+.post.en-archivo .post-meta{
+  grid-column:2;grid-row:1;
+  margin:0;justify-self:end;font-size:.7rem;
+}
+
+.vacio{
+  display:none;
+  font-family:var(--util);font-size:.8rem;letter-spacing:.12em;
+  text-transform:uppercase;color:var(--dim);padding:3rem 0;
+}
+main.sin-resultados .vacio{display:block}
+main.sin-resultados .divisor{display:none}
+body.leyendo .vacio{display:none!important}
+
+/* ---------- PIE ---------- */
+footer{border-top:1px solid var(--rule);margin-top:4rem;padding:2rem 1.5rem 3rem}
+.footer-in{
+  max-width:var(--max);margin:0 auto;
+  font-family:var(--util);font-weight:600;
+  font-size:.74rem;letter-spacing:.13em;text-transform:uppercase;color:var(--dim);
+  display:flex;flex-wrap:wrap;gap:1.2rem;justify-content:space-between;
+}
+.footer-in a:hover{color:var(--paper)}
+
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+@media (max-width:640px){
+  .post,.post.destacado{grid-template-columns:1fr;column-gap:0}
+  .sello{grid-column:1;grid-row:auto;width:48px;margin-bottom:1.1rem}
+  .post:hover{padding-left:0}
+  body{font-size:1.08rem}
+}
+</style>
+</head>
+<body>
+
+<header class="masthead">
+  <div class="masthead-in">
+
+    <!-- El ojo. La pupila sigue al cursor. -->
+    <svg class="ojo" id="ojo" viewBox="0 0 120 64" aria-hidden="true">
+      <defs>
+        <clipPath id="corte">
+          <path d="M3 32 C 26 5, 94 5, 117 32 C 94 59, 26 59, 3 32 Z"/>
+        </clipPath>
+      </defs>
+      <path class="globo" d="M3 32 C 26 5, 94 5, 117 32 C 94 59, 26 59, 3 32 Z"/>
+      <g clip-path="url(#corte)">
+        <g id="pupilaGrupo">
+          <circle class="iris" cx="60" cy="32" r="16"/>
+          <circle class="iris" cx="60" cy="32" r="10.5" stroke-dasharray="2 3"/>
+          <circle class="pupila" cx="60" cy="32" r="5.5"/>
+        </g>
+      </g>
+      <path class="lente" d="M3 32 C 26 5, 94 5, 117 32 C 94 59, 26 59, 3 32 Z"/>
+    </svg>
+
+    <div class="marca">
+      <svg class="ojo-fondo" viewBox="0 0 120 64" aria-hidden="true">
+        <path d="M3 32 C 26 5, 94 5, 117 32 C 94 59, 26 59, 3 32 Z"/>
+        <path d="M14 32 C 32 14, 88 14, 106 32 C 88 50, 32 50, 14 32 Z" opacity=".55"/>
+        <circle cx="60" cy="32" r="21"/>
+        <g id="pupilaFondo">
+          <circle cx="60" cy="32" r="14"/>
+          <circle cx="60" cy="32" r="8" stroke-dasharray="3 4"/>
+          <circle class="pupila-fondo" cx="60" cy="32" r="3.4"/>
+        </g>
+      </svg>
+      <h1 class="logo">Orwelliano<br>Eyes</h1>
+    </div>
+    <p class="tagline">Tecnología · Política · Govtech — Córdoba, Argentina</p>
+
+    <div class="estado" id="estado"></div>
+
+    <div class="filtros" id="filtros">
+      <button data-f="todo" aria-pressed="true">Todo</button>
+      <button data-f="tecnologia" aria-pressed="false">Tecnología</button>
+      <button data-f="politica" aria-pressed="false">Política</button>
+      <button data-f="govtech" aria-pressed="false">Govtech</button>
+      <div class="busqueda">
+        <label for="buscador" class="visualmente-oculto" style="position:absolute;left:-9999px">Buscar notas</label>
+        <input id="buscador" type="search" placeholder="Buscar" autocomplete="off">
+      </div>
+    </div>
+  </div>
+</header>
+
+<main id="lista" data-filtro="todo">
+
+<!-- ══════════════════════════════════════════════════════════════════
+     ACÁ ESCRIBÍS LOS ARTÍCULOS
+
+     Copiá el bloque <article> completo y pegalo en cualquier lado
+     de esta zona. No importa el orden: la página los ordena sola
+     por fecha, del más nuevo al más viejo.
+
+     Cambiá solo 4 cosas:
+
+     1. data-cat   → tecnologia | politica | govtech  (sin acento, minúscula)
+     2. data-fecha → AAAA-MM-DD   (ej: 2026-07-29)
+     3. id         → texto corto sin espacios ni acentos. Es el link
+                     directo a la nota: tublog.com/#el-id-que-pusiste
+     4. Título, bajada y cuerpo.
+
+     El tiempo de lectura, la fecha legible y el iris de la derecha
+     se generan solos. El iris es único para cada id.
+
+     ¿QUERÉS PONER UNA IMAGEN? Dentro del <div class="cuerpo">:
+     <figure>
+       <img src="imagenes/nombre-archivo.webp" alt="Descripción de la imagen">
+       <figcaption>Epígrafe o fuente</figcaption>
+     </figure>
+     ══════════════════════════════════════════════════════════════════ -->
+
+
+<!-- ▼▼▼ EJEMPLO 1 — borralo cuando escribas el tuyo ▼▼▼ -->
+<article class="post" data-cat="govtech" data-fecha="2026-07-29" id="expedientes-que-nadie-lee">
+  <div class="post-meta">
+    <span class="cat">Govtech</span>
+    <span class="fecha"></span>
+    <span class="tiempo"></span>
+  </div>
+  <h2><button>El expediente digital que nadie lee</button></h2>
+  <p class="bajada">Digitalizar un trámite no es lo mismo que arreglarlo. Casi siempre se hace lo primero y se anuncia lo segundo.</p>
+  <div class="cuerpo">
+    <p>Hay una diferencia que se pasa por alto en casi todos los anuncios de modernización del Estado: pasar un papel a PDF no cambia el proceso, cambia el soporte. El trámite sigue teniendo las mismas doce firmas, las mismas tres oficinas y el mismo mes de demora, solo que ahora nadie puede quejarse de que se perdió la carpeta.</p>
+    <h3>Dónde está la brecha</h3>
+    <p>El problema no es técnico. Es que la digitalización se diseña desde la lógica de quien administra el expediente y no desde la de quien lo necesita. Cuando eso pasa, se automatiza la burocracia en lugar de reducirla.</p>
+    <blockquote>Un sistema que reproduce el circuito de papel en pantalla no es innovación: es el mismo problema con mejor iluminación.</blockquote>
+    <p>La prueba es simple y cualquiera puede hacerla: contá cuántos pasos tenía el trámite antes y cuántos tiene ahora. Si el número es el mismo, no se modernizó nada.</p>
+  </div>
+  <button class="leer">Leer nota →</button>
+</article>
+<!-- ▲▲▲ FIN EJEMPLO 1 ▲▲▲ -->
+
+
+<!-- ▼▼▼ EJEMPLO 2 — borralo ▼▼▼ -->
+<article class="post" data-cat="tecnologia" data-fecha="2026-07-28" id="ia-en-oficinas-publicas">
+  <div class="post-meta">
+    <span class="cat">Tecnología</span>
+    <span class="fecha"></span>
+    <span class="tiempo"></span>
+  </div>
+  <h2><button>La IA ya entró a la oficina pública, sin permiso</button></h2>
+  <p class="bajada">Nadie firmó una autorización, pero medio edificio está redactando con un modelo de lenguaje. Eso plantea preguntas que todavía no se están haciendo.</p>
+  <div class="cuerpo">
+    <p>La adopción de inteligencia artificial en la administración pública no llegó por decreto ni por licitación. Llegó por la pestaña del navegador de cada empleado que necesitaba terminar un informe antes de las seis de la tarde.</p>
+    <p>Eso genera una situación curiosa: existe un uso masivo, cotidiano y completamente informal de una tecnología sobre la que no hay criterio institucional. Ni prohibición clara, ni marco de uso, ni idea de qué información se está pegando en dónde.</p>
+    <h3>Lo que hay que decidir</h3>
+    <p>La discusión útil no es si conviene o no. Ya se está usando. La discusión es qué datos pueden salir del organismo, quién revisa lo que produce el modelo y quién firma el resultado.</p>
+  </div>
+  <button class="leer">Leer nota →</button>
+</article>
+<!-- ▲▲▲ FIN EJEMPLO 2 ▲▲▲ -->
+
+
+<!-- ▼▼▼ EJEMPLO 3 — borralo ▼▼▼ -->
+<article class="post" data-cat="politica" data-fecha="2026-07-27" id="presupuesto-municipal-legible">
+  <div class="post-meta">
+    <span class="cat">Política</span>
+    <span class="fecha"></span>
+    <span class="tiempo"></span>
+  </div>
+  <h2><button>Un presupuesto que se publica pero no se entiende</button></h2>
+  <p class="bajada">La transparencia formal ya está cumplida en casi todos los municipios. La transparencia real es otra cosa.</p>
+  <div class="cuerpo">
+    <p>Publicar un presupuesto en PDF de cuatrocientas páginas cumple con la norma y con nada más. El dato está disponible en el sentido jurídico del término y es inaccesible en el sentido práctico.</p>
+    <p>La diferencia importa porque define quién puede controlar el gasto público: si hacen falta cuatro horas y conocimiento técnico para responder una pregunta simple, el control queda reservado a quien tiene esas cuatro horas.</p>
+  </div>
+  <button class="leer">Leer nota →</button>
+</article>
+<!-- ▲▲▲ FIN EJEMPLO 3 ▲▲▲ -->
+
+
+  <div class="divisor" id="divisor">
+    <span>Archivo</span>
+    <span id="divisor-conteo"></span>
+  </div>
+  <p class="vacio">No hay notas que coincidan con la búsqueda.</p>
+  <button class="volver" id="volver">← Volver al índice</button>
+</main>
+
+<footer>
+  <div class="footer-in">
+    <span>Orwelliano Eyes — Córdoba, Argentina</span>
+    <span><a href="mailto:tucorreo@ejemplo.com">Contacto</a></span>
+  </div>
+</footer>
+
+<script>
+(function(){
+  var lista   = document.getElementById('lista');
+  var estado  = document.getElementById('estado');
+  var filtros = document.getElementById('filtros');
+  var volver  = document.getElementById('volver');
+  var vacio   = lista.querySelector('.vacio');
+  var TITULO  = 'Orwelliano Eyes';
+
+  var NOMBRES = {tecnologia:'Tecnología', politica:'Política', govtech:'Govtech'};
+  var MESES = ['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
+
+  /* --- Generador de iris: mismo id, mismo dibujo, siempre --- */
+  function semilla(s){
+    var h = 2166136261;
+    for (var i=0;i<s.length;i++){ h ^= s.charCodeAt(i); h = Math.imul(h,16777619); }
+    return h>>>0;
+  }
+  function iris(id){
+    var s = semilla(id);
+    function sig(n){ s = (Math.imul(s ^ (s>>>15), 2246822507)) >>> 0; return s % n; }
+    var anillos = 3 + sig(3);
+    var rayos   = 8 + sig(13);
+    var pupila  = 7 + sig(5);
+    var giro    = sig(90);
+    var p = '<svg viewBox="0 0 100 100" aria-hidden="true">';
+    p += '<circle cx="50" cy="50" r="48" fill="none" stroke="currentColor" stroke-width="1" opacity=".45"/>';
+    for (var i=0;i<anillos;i++){
+      var r = 16 + i*(30/anillos);
+      var d = 1 + sig(4);
+      p += '<circle cx="50" cy="50" r="'+r.toFixed(1)+'" fill="none" stroke="currentColor" stroke-width="1" stroke-dasharray="'+d+' '+(d+sig(4)+1)+'" opacity=".7"/>';
+    }
+    p += '<g transform="rotate('+giro+' 50 50)" opacity=".55">';
+    for (var j=0;j<rayos;j++){
+      var a = (360/rayos)*j*Math.PI/180;
+      p += '<line x1="'+(50+Math.cos(a)*16).toFixed(1)+'" y1="'+(50+Math.sin(a)*16).toFixed(1)+
+           '" x2="'+(50+Math.cos(a)*45).toFixed(1)+'" y2="'+(50+Math.sin(a)*45).toFixed(1)+
+           '" stroke="currentColor" stroke-width="1"/>';
+    }
+    p += '</g><circle cx="50" cy="50" r="'+pupila+'" fill="currentColor"/></svg>';
+    return p;
+  }
+
+  var posts = Array.prototype.slice.call(lista.querySelectorAll('.post'));
+
+  posts.sort(function(a,b){ return (b.dataset.fecha||'').localeCompare(a.dataset.fecha||''); });
+  posts.forEach(function(p){ lista.insertBefore(p, vacio); });
+
+  var conteo = {tecnologia:0, politica:0, govtech:0};
+  posts.forEach(function(p){
+    var cat = p.dataset.cat;
+    if (conteo[cat] !== undefined) conteo[cat]++;
+
+    var f = (p.dataset.fecha||'').split('-');
+    var elF = p.querySelector('.fecha');
+    if (elF && f.length===3) elF.textContent = f[2]+' '+MESES[+f[1]-1]+' '+f[0];
+
+    var cuerpo = p.querySelector('.cuerpo');
+    var palabras = (cuerpo ? cuerpo.textContent : '').trim().split(/\s+/).length;
+    var elT = p.querySelector('.tiempo');
+    if (elT) elT.textContent = Math.max(1, Math.round(palabras/200)) + ' min de lectura';
+
+    var sello = document.createElement('div');
+    sello.className = 'sello';
+    sello.innerHTML = iris(p.id || 'nota');
+    p.insertBefore(sello, p.firstChild);
+  });
+
+  var partes = Object.keys(conteo).map(function(c){
+    return '<span><span class="pip" style="background:var(--'+c+')"></span>'+
+           NOMBRES[c].toUpperCase()+' <b>'+String(conteo[c]).padStart(2,'0')+'</b></span>';
+  });
+  var ult = posts[0] ? posts[0].dataset.fecha.split('-') : null;
+  if (ult) partes.push('<span>ÚLTIMA ENTRADA <b>'+ult[2]+'.'+ult[1]+'.'+ult[0].slice(2)+'</b></span>');
+  estado.innerHTML = partes.join('');
+
+  /* --- Búsqueda, filtro y archivo en una sola función --- */
+  var LIMITE_PORTADA = 10;   /* cuántas notas van completas en la portada */
+  var buscador = document.getElementById('buscador');
+  var divisor  = document.getElementById('divisor');
+  var divConteo = document.getElementById('divisor-conteo');
+
+  function normalizar(s){
+    return s.normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();
+  }
+  posts.forEach(function(p){ p._texto = normalizar(p.textContent); });
+
+  /* El divisor se ubica justo antes de la primera nota del archivo */
+  if (posts[LIMITE_PORTADA]) lista.insertBefore(divisor, posts[LIMITE_PORTADA]);
+  else divisor.remove();
+
+  function aplicar(){
+    var q = normalizar(buscador.value.trim());
+    var f = lista.dataset.filtro;
+    var visibles = 0;
+
+    posts.forEach(function(p){
+      var pasa = (f==='todo' || p.dataset.cat===f) && (!q || p._texto.indexOf(q)>-1);
+      p.classList.toggle('oculto-busqueda', !pasa);
+      if (pasa) visibles++;
+    });
+
+    /* El archivo solo existe en la vista completa, sin filtro ni búsqueda */
+    var modo = (f==='todo' && !q);
+    lista.classList.toggle('modo-archivo', modo);
+    posts.forEach(function(p,i){
+      p.classList.toggle('en-archivo', modo && i>=LIMITE_PORTADA);
+    });
+    if (posts[0]) posts[0].classList.toggle('destacado', modo);
+    if (divConteo) divConteo.textContent = Math.max(0, posts.length-LIMITE_PORTADA) + ' notas anteriores';
+
+    lista.classList.toggle('sin-resultados', visibles===0);
+  }
+
+  filtros.addEventListener('click', function(e){
+    var b = e.target.closest('button');
+    if (!b) return;
+    cerrar();
+    lista.dataset.filtro = b.dataset.f;
+    Array.prototype.forEach.call(filtros.querySelectorAll('button'), function(x){
+      x.setAttribute('aria-pressed', x===b ? 'true' : 'false');
+    });
+    aplicar();
+  });
+
+  buscador.addEventListener('input', function(){
+    cerrar();
+    aplicar();
+  });
+
+  aplicar();
+
+  /* Cambiar la URL puede estar prohibido (previews en iframe, file://).
+     Si falla, la nota se abre igual: solo se pierde el link directo. */
+  function urlHacia(destino){
+    try { history.pushState(null, '', destino); } catch(e){ /* entorno restringido */ }
+  }
+
+  function abrir(p, empujar){
+    posts.forEach(function(x){ x.classList.remove('abierto'); });
+    p.classList.add('abierto');
+    p.classList.remove('en-archivo','oculto-busqueda');
+    document.body.classList.add('leyendo');
+    if (empujar) urlHacia('#'+p.id);
+    window.scrollTo(0,0);
+    document.title = p.querySelector('h2').textContent + ' — ' + TITULO;
+  }
+  function cerrar(){
+    if (!document.body.classList.contains('leyendo')) return;
+    document.body.classList.remove('leyendo');
+    posts.forEach(function(x){ x.classList.remove('abierto'); });
+    aplicar();
+    document.title = TITULO + ' — Tecnología, política y govtech';
+  }
+
+  lista.addEventListener('click', function(e){
+    var t = e.target.closest('h2 button, .leer');
+    if (!t) return;
+    abrir(t.closest('.post'), true);
+  });
+
+  volver.addEventListener('click', function(){
+    cerrar();
+    if (location.hash) urlHacia(location.pathname);
+  });
+
+  function desdeHash(){
+    var id = location.hash.slice(1);
+    if (!id){ cerrar(); return; }
+    var p = document.getElementById(id);
+    if (p && p.classList.contains('post')) abrir(p, false);
+  }
+  window.addEventListener('popstate', desdeHash);
+  window.addEventListener('hashchange', desdeHash);
+  desdeHash();
+
+  document.addEventListener('keydown', function(e){
+    if (e.key==='Escape'){ cerrar(); if (location.hash) urlHacia(location.pathname); }
+  });
+
+  /* La pupila sigue al cursor */
+  var grupo = document.getElementById('pupilaGrupo');
+  var fondo = document.getElementById('pupilaFondo');
+  var quieto = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if (grupo && !quieto && window.matchMedia('(hover: hover)').matches){
+    window.addEventListener('mousemove', function(e){
+      var r = document.getElementById('ojo').getBoundingClientRect();
+      var dx = Math.max(-1, Math.min(1, (e.clientX-(r.left+r.width/2))/320));
+      var dy = Math.max(-1, Math.min(1, (e.clientY-(r.top+r.height/2))/220));
+      grupo.setAttribute('transform','translate('+(dx*9).toFixed(1)+','+(dy*6).toFixed(1)+')');
+      if (fondo) fondo.setAttribute('transform','translate('+(dx*5).toFixed(1)+','+(dy*3.5).toFixed(1)+')');
+    }, {passive:true});
+  }
+})();
+</script>
+</body>
+</html>
