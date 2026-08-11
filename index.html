@@ -439,7 +439,7 @@ footer{border-top:1px solid var(--rule);margin-top:4rem;padding:2rem 1.5rem 3rem
   
 <article class="post" data-cat="tecnologia" data-fecha="2026-08-05" id="trampa-ciberataques-bandeja">
   <div class="post-meta">
-    <span class="cat">Tecnologia</span>
+    <span class="cat">Tecnología</span>
     <span class="fecha"></span>
     <span class="tiempo"></span>
   </div>
@@ -454,9 +454,9 @@ footer{border-top:1px solid var(--rule);margin-top:4rem;padding:2rem 1.5rem 3rem
 <p>Hay que decirlo también en defensa del usuario: el entorno digital exige implementar filtros antispam, pasarelas de correo, redes privadas virtuales (VPN) y mantener los sistemas estrictamente actualizados. Pero la tecnología sola es insuficiente. La objeción central no es "el software falló"; es "el hábito no dejó cómo advertir que el remitente era falso". Y esa distinción es la que importa, porque la seguridad de los datos no se legitima solo comprando antivirus, sino haciendo de la precaución una práctica verificable.</p>
 
 <blockquote>La ciberseguridad en el correo electrónico no necesita solo de herramientas técnicas robustas: necesita de una postura de desconfianza activa por parte de quienes pueden perderlo todo con un simple clic.</blockquote>
-<h3>La verdad incomoda</h3>
+<h3>La verdad incómoda</h3>
 <p>Ahí está el riesgo real, y no está en los hackeos globales que ocupan las portadas de los diarios. Está en las decenas de decisiones menores que nunca son noticia: un clic en un enlace no verificado, la descarga apresurada de un archivo adjunto, o la pereza de no escrutar minuciosamente la dirección del remitente. Sumadas, estas pequeñas omisiones configuran el terreno sobre el que los atacantes compiten y ganan.</p>
-<p>La defensa puede ejecutarse impecablemente. La forma de lograrlo es instaurar reglas innegociables: usar frases largas y complejas como contraseñas, activar siempre la autenticación de dos factores (2FA) como capa de verificación ineludible, y priorizar el acceso directo y manual a las plataformas oficiales desde el navegador, con esto quiero decir, si ves un correo "oficial" sobre algun ingreso que no recuerdas haber hecho o no permitiste ir de manera urgente a abrir el navegador e ir e manera manual a la pagina oficial, nunca pero nunca navegar desde el mail, osea presionar en ese link por mas real que parezca. La transparencia y vigilancia hay que exigirlas desde el primer día, porque la información que se entregó por un enlace fraudulento ya no vuelve. La infraestructura de red probablemente sea válida en lo formal. La pregunta es si nuestros hábitos dejaron nuestra identidad digital en condiciones de que nadie pueda arrebatárnosla en un entorno cada vez más hostil.</p>
+<p>La defensa puede ejecutarse impecablemente. La forma de lograrlo es instaurar reglas innegociables: usar frases largas y complejas como contraseñas, activar siempre la autenticación de dos factores (2FA) como capa de verificación ineludible, y priorizar el acceso directo y manual a las plataformas oficiales desde el navegador. Con esto quiero decir: si ves un correo "oficial" sobre algún ingreso que no recordás haber hecho o no permitiste, abrí el navegador e andá de manera manual a la página oficial. Nunca, pero nunca, navegues desde el mail, o sea, no presiones en ese link por más real que parezca. La transparencia y vigilancia hay que exigirlas desde el primer día, porque la información que se entregó por un enlace fraudulento ya no vuelve. La infraestructura de red probablemente sea válida en lo formal. La pregunta es si nuestros hábitos dejaron nuestra identidad digital en condiciones de que nadie pueda arrebatárnosla en un entorno cada vez más hostil.</p>
    </div>
    <button class="leer">Leer nota →</button>
 </article>
@@ -682,8 +682,11 @@ footer{border-top:1px solid var(--rule);margin-top:4rem;padding:2rem 1.5rem 3rem
     return '<span><span class="pip" style="background:var(--'+c+')"></span>'+
            NOMBRES[c].toUpperCase()+' <b>'+String(conteo[c]).padStart(2,'0')+'</b></span>';
   });
-  var ult = posts[0] ? posts[0].dataset.fecha.split('-') : null;
-  if (ult) partes.push('<span>ÚLTIMA ENTRADA <b>'+ult[2]+'.'+ult[1]+'.'+ult[0].slice(2)+'</b></span>');
+  /* Toma la primera nota con fecha válida (AAAA-MM-DD); si ninguna la tiene,
+     no muestra "ÚLTIMA ENTRADA" en vez de imprimir "undefined.undefined". */
+  var reciente = posts.map(function(p){ return (p.dataset.fecha||'').split('-'); })
+                      .find(function(f){ return f.length===3 && f[0] && f[1] && f[2]; });
+  if (reciente) partes.push('<span>ÚLTIMA ENTRADA <b>'+reciente[2]+'.'+reciente[1]+'.'+reciente[0].slice(2)+'</b></span>');
   estado.innerHTML = partes.join('');
 
   /* --- Búsqueda, filtro y archivo en una sola función --- */
