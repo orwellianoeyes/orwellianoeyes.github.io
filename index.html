@@ -44,7 +44,7 @@
   --body:'Newsreader',Georgia,serif;
   --util:'Inter',Helvetica,Arial,sans-serif;
 
-  --max:64rem;
+  --ancho:76rem;
 }
 
 *{box-sizing:border-box}
@@ -59,75 +59,31 @@ body{
   font-optical-sizing:auto;
 }
 a{color:inherit}
+button{font:inherit;color:inherit}
 :focus-visible{outline:2px solid var(--c);outline-offset:3px}
 
-/* ---------- CABECERA ---------- */
-.masthead{position:relative;padding:2.2rem 1.5rem 2.5rem;overflow:hidden}
-.masthead-in{position:relative;z-index:1;max-width:var(--max);margin:0 auto}
+/* El ojo de partículas se dibuja en este canvas, que ocupa toda la ventana. */
+#lienzo{position:fixed;inset:0;width:100%;height:100%;z-index:0;pointer-events:none}
 
-/* El ojo de partículas se dibuja en este canvas, detrás de la cabecera. */
-#lienzo{position:absolute;inset:0;width:100%;height:100%;z-index:0;pointer-events:none}
-
-/* Reserva el lugar del ojo sobre el nombre. En pantallas anchas es solo aire
-   arriba del logo (el ojo va a la derecha); en celular el ojo se dibuja acá. */
-.ojo{
-  width:clamp(90px,15vw,168px);
-  aspect-ratio:120/64;
-  margin-bottom:1.3rem;
-}
-@media (max-width:899px){.ojo{width:clamp(220px,78vw,360px)}}
-
-.logo{
-  font-family:var(--display);
-  font-weight:400;
-  font-size:clamp(2.8rem,8.5vw,5.2rem);
-  letter-spacing:-.04em;
-  line-height:1;
-  margin:0;
-}
-.tagline{
-  font-family:var(--util);
-  font-weight:500;
-  font-size:.74rem;
-  letter-spacing:.16em;
-  text-transform:uppercase;
-  color:var(--dim);
-  margin:1.2rem 0 0;
+.escena{
+  position:relative;z-index:1;
+  min-height:100vh;min-height:100svh;
+  display:flex;flex-direction:column;
+  padding:0 1.5rem;
+  overflow-x:clip;   /* las notas entran deslizándose desde la derecha: que no ensanchen la página */
 }
 
-.estado{
-  font-family:var(--util);
-  font-weight:600;
-  font-size:.7rem;
-  letter-spacing:.1em;
-  color:var(--dim);
-  text-transform:uppercase;
-  margin-top:2.2rem;
-  display:flex;flex-wrap:wrap;gap:.6rem 1.4rem;
+/* ---------- BARRA ---------- */
+/* Queda fija arriba: al leer, el buscador y el "inicio" siguen a mano. */
+.barra{
+  position:sticky;top:0;z-index:5;
+  display:flex;align-items:center;justify-content:space-between;gap:1.5rem;
+  width:100%;max-width:var(--ancho);margin:0 auto;padding:1.6rem 0 1.2rem;
+  background:linear-gradient(to bottom,var(--ink) 65%,rgba(0,0,0,0));
 }
-.estado b{color:var(--paper);font-weight:600}
-.estado .pip{display:inline-block;width:.5rem;height:.5rem;border-radius:50%;margin-right:.45rem}
+.marca{margin:0;font-family:var(--display);font-weight:500;font-size:1.05rem;letter-spacing:-.01em;line-height:1}
+.marca a{text-decoration:none}
 
-/* Filtros: texto sin caja. El activo va en blanco y subrayado, para que no
-   dependa solo del color. El margen negativo alinea el texto con el logo. */
-.filtros{
-  display:flex;flex-wrap:wrap;gap:.2rem;
-  margin:1.4rem 0 0 -.8rem;
-}
-.filtros button{
-  font-family:var(--util);font-weight:600;
-  font-size:.72rem;letter-spacing:.1em;text-transform:uppercase;
-  color:var(--dim);background:none;border:0;border-radius:9999px;
-  padding:.5rem .8rem;cursor:pointer;
-  transition:color .15s;
-}
-.filtros button:hover{color:var(--paper)}
-.filtros button[aria-pressed="true"]{
-  color:var(--paper);
-  text-decoration:underline;text-decoration-thickness:1px;text-underline-offset:.55rem;
-}
-
-.busqueda{margin-left:auto;display:flex;align-items:center;gap:.5rem}
 .busqueda input{
   font-family:var(--util);font-weight:500;
   font-size:.8rem;letter-spacing:.04em;
@@ -138,82 +94,191 @@ a{color:inherit}
 .busqueda input::placeholder{color:var(--dim);text-transform:uppercase;letter-spacing:.1em;font-size:.7rem}
 .busqueda input:focus{outline:none;border-bottom-color:var(--iris)}
 
-/* ---------- LISTA ---------- */
-main{max-width:var(--max);margin:0 auto;padding:0 1.5rem}
-
-.post[data-cat="tecnologia"]{--c:var(--tecnologia)}
-.post[data-cat="politica"]{--c:var(--politica)}
-.post[data-cat="govtech"]{--c:var(--govtech)}
-
-.post{
-  padding:clamp(2.5rem,6vw,3.75rem) 0;
+/* ---------- ZONA: el lugar del ojo + las pantallas ---------- */
+.zona{
+  flex:1;
+  width:100%;max-width:var(--ancho);margin:0 auto;
   display:grid;
-  grid-template-columns:1fr 64px;
-  column-gap:2rem;
+  padding-bottom:2rem;
+}
+/* El ojo se dibuja donde esté este recuadro. Al cambiar de pantalla, el recuadro
+   cambia de lugar y de tamaño, y el ojo lo sigue. */
+.ojo-slot{aspect-ratio:120/64;width:100%}
+.paneles{min-width:0;width:100%}
+
+/* Inicio: el ojo grande al centro, las opciones debajo */
+body[data-vista="inicio"] .zona{
+  grid-template-columns:1fr;
+  justify-items:center;align-content:center;text-align:center;
+  row-gap:clamp(1.5rem,4vh,3rem);
+}
+body[data-vista="inicio"] .ojo-slot{width:min(640px,52vw,78vh)}
+body[data-vista="inicio"] .paneles{max-width:60rem}
+
+/* Lista y nota en pantallas anchas: el ojo a la izquierda, fijo; el contenido a la derecha */
+@media (min-width:900px){
+  body:not([data-vista="inicio"]) .zona{
+    grid-template-columns:minmax(280px,1fr) minmax(0,1.6fr);
+    column-gap:clamp(2rem,5vw,5rem);
+    align-items:start;align-content:start;
+    padding-top:1.5rem;
+  }
+  body:not([data-vista="inicio"]) .ojo-slot{
+    position:sticky;top:clamp(5rem,20vh,10rem);
+    grid-column:1;grid-row:1;max-width:540px;
+  }
+  body[data-vista="nota"] .ojo-slot{max-width:380px}
+  body:not([data-vista="inicio"]) .paneles{grid-column:2;grid-row:1}
 }
 
-/* Sello: iris único generado a partir del id de la nota */
-.sello{grid-column:2;grid-row:1 / span 4;align-self:start;color:var(--c);opacity:.85}
-.sello svg{width:100%;height:auto;display:block}
+/* Celular: el ojo arriba, el contenido debajo */
+@media (max-width:899px){
+  .zona{justify-items:center;row-gap:1.5rem}
+  body[data-vista="inicio"] .ojo-slot{width:min(94vw,520px)}
+  body[data-vista="lista"] .ojo-slot{width:min(70vw,320px)}
+  body[data-vista="nota"] .ojo-slot{width:min(56vw,260px)}
+  .busqueda input{width:8rem}
+}
 
-.post-meta{
-  grid-column:1;
+/* ---------- PANTALLAS Y ANIMACIONES ---------- */
+#vista-inicio,#vista-lista,#vista-nota{display:none}
+body[data-vista="inicio"] #vista-inicio,
+body[data-vista="lista"]  #vista-lista,
+body[data-vista="nota"]   #vista-nota{display:block}
+
+.panel{transition:opacity .22s ease,transform .22s ease}
+.panel.sale{opacity:0;transform:translateY(-28px)}
+
+.anim{
+  animation-duration:.8s;
+  animation-timing-function:cubic-bezier(.2,.75,.2,1);
+  animation-fill-mode:both;
+  animation-delay:calc(var(--base,.3s) + var(--i,0)*110ms);
+}
+.panel[data-entrada="derecha"].entra .anim{animation-name:ent-derecha}
+.panel[data-entrada="abajo"].entra   .anim{animation-name:ent-abajo}
+.panel[data-entrada="arriba"].entra  .anim{animation-name:ent-arriba}
+.panel[data-entrada="subir"].entra   .anim{animation-name:ent-subir}
+.panel.quieta .anim{animation:none}
+
+@keyframes ent-derecha{from{opacity:0;transform:translateX(56px)}to{opacity:1;transform:none}}
+@keyframes ent-abajo  {from{opacity:0;transform:translateY(90px)}to{opacity:1;transform:none}}
+@keyframes ent-arriba {from{opacity:0;transform:translateY(-36px)}to{opacity:1;transform:none}}
+@keyframes ent-subir  {from{opacity:0;transform:translateY(26px)}to{opacity:1;transform:none}}
+
+@media (prefers-reduced-motion:reduce){
+  .anim{animation:none!important}
+  .panel{transition:none}
+}
+
+/* ---------- INICIO ---------- */
+.etiqueta-inicio,.tagline{
+  font-family:var(--util);font-weight:500;
+  font-size:.72rem;letter-spacing:.16em;text-transform:uppercase;color:var(--dim);
+  margin:0;
+}
+.etiqueta-inicio{margin-bottom:1.2rem}
+.tagline{margin-top:2.4rem}
+
+.opciones{display:flex;flex-wrap:wrap;justify-content:center;gap:.4rem clamp(1.4rem,3.5vw,3.2rem)}
+.opcion{
+  --c:var(--paper);
+  font-family:var(--display);font-weight:400;
+  font-size:clamp(1.7rem,3.4vw,2.9rem);letter-spacing:-.035em;line-height:1.15;
+  text-decoration:none;color:var(--paper);
+  display:inline-flex;align-items:baseline;gap:.5rem;
+  transition:color .2s;
+}
+.opcion i{
+  display:inline-block;width:.38em;height:.38em;border-radius:50%;
+  background:var(--c);align-self:center;
+}
+.opcion[data-cat="todo"] i{background:none;border:1px solid var(--dim)}
+.opcion[data-cat="tecnologia"]{--c:var(--tecnologia)}
+.opcion[data-cat="politica"]{--c:var(--politica)}
+.opcion[data-cat="govtech"]{--c:var(--govtech)}
+.opcion .n{font-family:var(--util);font-weight:600;font-size:.7rem;letter-spacing:.1em;color:var(--dim)}
+.opcion:hover,.opcion:focus-visible{color:var(--c)}
+
+/* ---------- LISTA ---------- */
+.lista-cab{margin:0 0 1.2rem}
+.volver{
+  display:inline-block;
+  font-family:var(--util);font-weight:600;
+  font-size:.72rem;letter-spacing:.1em;text-transform:uppercase;
+  color:var(--dim);text-decoration:none;margin-bottom:1.6rem;
+}
+.volver:hover{color:var(--paper)}
+.lista-titulo{
+  font-family:var(--display);font-weight:400;
+  font-size:clamp(2.2rem,5vw,4rem);letter-spacing:-.04em;line-height:1;
+  margin:0 0 1.4rem;
+}
+.lista-titulo small{
+  font-family:var(--util);font-weight:600;font-size:.72rem;letter-spacing:.1em;
+  color:var(--dim);vertical-align:top;margin-left:.7rem;
+}
+.tabs{display:flex;flex-wrap:wrap;gap:.2rem;margin-left:-.8rem}
+.tabs a{
+  font-family:var(--util);font-weight:600;
+  font-size:.72rem;letter-spacing:.1em;text-transform:uppercase;
+  color:var(--dim);text-decoration:none;
+  padding:.5rem .8rem;border-radius:9999px;
+  transition:color .15s;
+}
+.tabs a:hover{color:var(--paper)}
+.tabs a[aria-current="true"]{
+  color:var(--paper);
+  text-decoration:underline;text-decoration-thickness:1px;text-underline-offset:.55rem;
+}
+
+.item{
+  --c:var(--paper);
+  display:grid;grid-template-columns:1fr 44px;column-gap:1.6rem;
+  text-decoration:none;padding:1.8rem 0;
+}
+.item[data-cat="tecnologia"],#lectura[data-cat="tecnologia"]{--c:var(--tecnologia)}
+.item[data-cat="politica"],#lectura[data-cat="politica"]{--c:var(--politica)}
+.item[data-cat="govtech"],#lectura[data-cat="govtech"]{--c:var(--govtech)}
+.item-meta{
   font-family:var(--util);font-weight:600;
   font-size:.7rem;letter-spacing:.12em;text-transform:uppercase;
   color:var(--dim);
-  display:flex;flex-wrap:wrap;gap:1rem;
-  margin-bottom:1rem;
+  display:flex;flex-wrap:wrap;gap:1rem;margin-bottom:.9rem;
 }
-.post-meta .cat{color:var(--c)}
-
-.post h2{
-  grid-column:1;
+.item-meta .cat{color:var(--c)}
+.item-titulo{
+  display:block;
   font-family:var(--display);font-weight:400;
-  letter-spacing:-.035em;line-height:1.1;
-  font-size:clamp(1.8rem,4.6vw,3rem);
+  font-size:clamp(1.5rem,2.5vw,2.2rem);letter-spacing:-.03em;line-height:1.12;
+  transition:color .2s,transform .3s;
+}
+.item-bajada{
+  display:-webkit-box;-webkit-line-clamp:3;line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;
+  font-family:var(--display);font-weight:300;
+  font-size:1rem;line-height:1.6;color:var(--mist);
+  margin-top:.8rem;max-width:40rem;
+}
+.item:hover .item-titulo,.item:focus-visible .item-titulo{color:var(--c);transform:translateX(8px)}
+.sello{color:var(--c);opacity:.85;align-self:start}
+.sello svg{width:100%;height:auto;display:block}
+.vacio{
+  font-family:var(--util);font-size:.76rem;letter-spacing:.1em;
+  text-transform:uppercase;color:var(--dim);padding:3rem 0;margin:0;
+}
+
+/* ---------- NOTA ---------- */
+.lectura{max-width:40rem;--c:var(--paper)}
+.lectura-titulo{
+  font-family:var(--display);font-weight:400;
+  font-size:clamp(2rem,4.4vw,3.4rem);letter-spacing:-.04em;line-height:1.05;
   margin:0;
 }
-.post h2 button{
-  font:inherit;color:inherit;background:none;border:0;padding:0;
-  text-align:left;cursor:pointer;letter-spacing:inherit;
-}
-.post h2 button:hover{color:var(--c)}
-
-.bajada{
-  grid-column:1;margin:1.1rem 0 0;max-width:42rem;
+.lectura-bajada{
   font-family:var(--display);font-weight:300;
-  font-size:1.05rem;line-height:1.6;color:var(--mist);
+  font-size:1.25rem;line-height:1.55;color:var(--paper);margin:1.4rem 0 0;
 }
-.leer{
-  grid-column:1;justify-self:start;
-  font-family:var(--util);font-weight:600;
-  font-size:.72rem;letter-spacing:.1em;text-transform:uppercase;
-  color:var(--c);background:none;border:0;padding:0;margin-top:1.4rem;cursor:pointer;
-}
-.leer:hover{text-decoration:underline}
-
-.post.destacado h2{font-size:clamp(2.2rem,7vw,4.2rem);letter-spacing:-.04em;line-height:1.05}
-.post.destacado .bajada{font-size:1.2rem;color:var(--paper)}
-.post.destacado{grid-template-columns:1fr 96px}
-/* La única acción principal de la vista: píldora violeta, en la nota destacada. */
-.post.destacado .leer{
-  color:var(--paper);background:var(--iris);border-radius:9999px;
-  padding:.9rem 1.4rem;margin-top:2rem;
-  font-size:.78rem;letter-spacing:.06em;
-  transition:background .15s;
-}
-.post.destacado .leer:hover{text-decoration:none;background:#9470ff}
-
-/* ---------- LECTURA ---------- */
-.cuerpo{display:none;grid-column:1;color:var(--lectura)}
-
-body.leyendo .post{display:none}
-body.leyendo .post.abierto{display:grid;padding-top:1.2rem}
-body.leyendo .filtros,body.leyendo .estado{display:none}
-body.leyendo .post.abierto .leer{display:none}
-body.leyendo .post.abierto .cuerpo{display:block}
-
-.post.abierto .cuerpo{max-width:37rem;margin-top:2.8rem}
+.cuerpo{max-width:37rem;margin-top:2.8rem;color:var(--lectura)}
 .cuerpo p{margin:0 0 1.5rem}
 .cuerpo h3{
   font-family:var(--display);font-weight:500;letter-spacing:-.02em;
@@ -234,106 +299,72 @@ body.leyendo .post.abierto .cuerpo{display:block}
   text-transform:uppercase;color:var(--dim);margin-top:.6rem;
 }
 
-.volver{
-  display:none;
-  font-family:var(--util);font-weight:600;
-  font-size:.72rem;letter-spacing:.1em;text-transform:uppercase;
-  color:var(--dim);background:none;border:0;padding:1.8rem 0 0;cursor:pointer;
-}
-body.leyendo .volver{display:block}
-.volver:hover{color:var(--paper)}
-
-/* ---------- BUSCADOR / FILTRO / ARCHIVO ---------- */
-.oculto-busqueda{display:none}
-
-.divisor{
-  display:none;
-  align-items:baseline;justify-content:space-between;gap:1rem;
-  font-family:var(--util);font-weight:600;
-  font-size:.7rem;letter-spacing:.12em;text-transform:uppercase;
-  color:var(--dim);
-  margin-top:5rem;padding-bottom:1.2rem;
-}
-main.modo-archivo .divisor{display:flex}
-
-/* Fila compacta del archivo: la misma nota, mostrada como índice */
-.post.en-archivo{
-  grid-template-columns:1fr auto;
-  align-items:baseline;
-  column-gap:1.5rem;
-  padding:.9rem 0;
-}
-.post.en-archivo:hover h2 button{color:var(--c)}
-.post.en-archivo .sello,
-.post.en-archivo .bajada,
-.post.en-archivo .leer,
-.post.en-archivo .tiempo{display:none}
-.post.en-archivo h2{
-  grid-column:1;grid-row:1;
-  font-size:1.05rem;font-weight:500;letter-spacing:-.01em;line-height:1.35;
-}
-.post.en-archivo .post-meta{
-  grid-column:2;grid-row:1;
-  margin:0;justify-self:end;font-size:.7rem;
-}
-
-.vacio{
-  display:none;
-  font-family:var(--util);font-size:.76rem;letter-spacing:.1em;
-  text-transform:uppercase;color:var(--dim);padding:3rem 0;
-}
-main.sin-resultados .vacio{display:block}
-main.sin-resultados .divisor{display:none}
-body.leyendo .vacio{display:none!important}
-
 /* ---------- PIE ---------- */
-footer{margin-top:5rem;padding:2rem 1.5rem 3.5rem}
+footer{padding:2rem 0 3.5rem;width:100%;max-width:var(--ancho);margin:0 auto}
 .footer-in{
-  max-width:var(--max);margin:0 auto;
   font-family:var(--util);font-weight:600;
   font-size:.7rem;letter-spacing:.1em;text-transform:uppercase;color:var(--dim);
   display:flex;flex-wrap:wrap;gap:1.2rem;justify-content:space-between;
 }
 .footer-in a:hover{color:var(--paper)}
 
-@media (prefers-reduced-motion:reduce){*{transition:none!important}}
 @media (max-width:640px){
-  .post,.post.destacado{grid-template-columns:1fr;column-gap:0}
-  .sello{grid-column:1;grid-row:auto;width:48px;margin-bottom:1.1rem}
   body{font-size:1.08rem}
+  .item{grid-template-columns:1fr 36px;column-gap:1rem}
 }
 </style>
 </head>
-<body>
+<body data-vista="inicio" data-color="todo">
 
-<header class="masthead">
-  <canvas id="lienzo" aria-hidden="true"></canvas>
-  <div class="masthead-in">
+<canvas id="lienzo" aria-hidden="true"></canvas>
 
-    <!-- Lugar del ojo. El ojo en sí lo dibuja el canvas (ver el script del final). -->
-    <div class="ojo" id="ojo" aria-hidden="true"></div>
+<div class="escena">
 
-    <div class="marca">
-      <h1 class="logo">Orwelliano<br>Eyes</h1>
+  <header class="barra">
+    <h1 class="marca"><a href="#">Orwelliano Eyes</a></h1>
+    <div class="busqueda">
+      <label for="buscador" style="position:absolute;left:-9999px">Buscar notas</label>
+      <input id="buscador" type="search" placeholder="Buscar" autocomplete="off">
     </div>
-    <p class="tagline">Tecnología · Política · Govtech — Argentina</p>
+  </header>
 
-    <div class="estado" id="estado"></div>
+  <div class="zona">
 
-    <div class="filtros" id="filtros">
-      <button data-f="todo" aria-pressed="true">Todo</button>
-      <button data-f="tecnologia" aria-pressed="false">Tecnología</button>
-      <button data-f="politica" aria-pressed="false">Política</button>
-      <button data-f="govtech" aria-pressed="false">Govtech</button>
-      <div class="busqueda">
-        <label for="buscador" class="visualmente-oculto" style="position:absolute;left:-9999px">Buscar notas</label>
-        <input id="buscador" type="search" placeholder="Buscar" autocomplete="off">
-      </div>
+    <!-- Lugar del ojo. El ojo en sí lo dibuja el canvas (ver ojo.js). -->
+    <div class="ojo-slot" id="ojo" aria-hidden="true"></div>
+
+    <div class="paneles">
+
+      <section class="panel" id="vista-inicio" aria-label="Elegir tipo de nota">
+        <p class="etiqueta-inicio anim" style="--i:0">Elegí qué leer</p>
+        <nav class="opciones" id="opciones" aria-label="Tipos de nota"></nav>
+        <p class="tagline anim" style="--i:5">Tecnología · Política · Govtech — Argentina</p>
+      </section>
+
+      <section class="panel" id="vista-lista" aria-label="Notas">
+        <div class="lista-cab anim" id="lista-cab" style="--i:-2"></div>
+        <div id="lista-items"></div>
+      </section>
+
+      <article class="panel" id="vista-nota" aria-label="Nota">
+        <div class="lectura" id="lectura"></div>
+      </article>
+
     </div>
   </div>
-</header>
 
-<main id="lista" data-filtro="todo">
+  <footer>
+  <div class="footer-in">
+    <span>Orwelliano Eyes — Argentina</span>
+   <span><a href="https://x.com/orwelliano90" target="_blank" rel="me noopener">@orwelliano90</a></span>
+  </div>
+</footer>
+
+</div>
+
+<!-- Las notas se escriben acá, igual que siempre. La página las lee y las muestra
+     en las pantallas nuevas; este bloque queda oculto. -->
+<main id="lista" hidden>
 
 <!-- ══════════════════════════════════════════════════════════════════
      ACÁ ESCRIBÍS LOS ARTÍCULOS
@@ -797,32 +828,50 @@ footer{margin-top:5rem;padding:2rem 1.5rem 3.5rem}
 
 
 
-  <div class="divisor" id="divisor">
-    <span>Archivo</span>
-    <span id="divisor-conteo"></span>
-  </div>
-  <p class="vacio">No hay notas que coincidan con la búsqueda.</p>
-  <button class="volver" id="volver">← Volver al índice</button>
 </main>
 
-<footer>
-  <div class="footer-in">
-    <span>Orwelliano Eyes — Argentina</span>
-   <span><a href="https://x.com/orwelliano90" target="_blank" rel="me noopener">@orwelliano90</a></span>
-  </div>
-</footer>
-
 <script>
+/* Navegación — Orwelliano Eyes
+   Tres pantallas: inicio (el ojo grande y las opciones), lista (el ojo se corre
+   a un costado y las notas del tipo elegido entran de a una) y nota (la página
+   "baja" y el ojo queda al costado mientras se lee).
+   Las notas se siguen escribiendo igual: son los <article> de <main id="lista">,
+   que ahora está oculto y sirve de fuente. La dirección manda: "#" es el inicio,
+   "#t/tecnologia" una lista y "#id-de-la-nota" una nota (los links viejos andan). */
 (function(){
-  var lista   = document.getElementById('lista');
-  var estado  = document.getElementById('estado');
-  var filtros = document.getElementById('filtros');
-  var volver  = document.getElementById('volver');
-  var vacio   = lista.querySelector('.vacio');
-  var TITULO  = 'Orwelliano Eyes';
+  'use strict';
 
+  var body       = document.body;
+  var fuente     = document.getElementById('lista');
+  var panelInicio = document.getElementById('vista-inicio');
+  var panelLista  = document.getElementById('vista-lista');
+  var panelNota   = document.getElementById('vista-nota');
+  var opciones   = document.getElementById('opciones');
+  var cabLista   = document.getElementById('lista-cab');
+  var itemsEl    = document.getElementById('lista-items');
+  var notaEl     = document.getElementById('lectura');
+  var buscador   = document.getElementById('buscador');
+
+  var TITULO      = 'Orwelliano Eyes';
+  var TITULO_HOME = 'Orwelliano Eyes — Tecnología, política y govtech';
   var NOMBRES = {tecnologia:'Tecnología', politica:'Política', govtech:'Govtech'};
-  var MESES = ['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
+  var ORDEN   = ['tecnologia','politica','govtech'];
+  var MESES   = ['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
+  var reducido = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  /* La página le pide al ojo que mire un punto (una opción, el avance de la lectura) */
+  window.ojoMirada = {on:false, x:0, y:0};
+
+  function esc(s){
+    return s.replace(/[&<>"']/g, function(c){
+      return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];
+    });
+  }
+  function normalizar(s){
+    return s.normalize('NFD').replace(/[̀-ͯ]/g,'').toLowerCase();
+  }
+  function clamp(v,a,b){ return v<a ? a : (v>b ? b : v); }
+  function dos(n){ return String(n).padStart(2,'0'); }
 
   /* --- Generador de iris: mismo id, mismo dibujo, siempre --- */
   function semilla(s){
@@ -855,161 +904,222 @@ footer{margin-top:5rem;padding:2rem 1.5rem 3.5rem}
     return p;
   }
 
-  var posts = Array.prototype.slice.call(lista.querySelectorAll('.post'));
-
-  posts.sort(function(a,b){ return (b.dataset.fecha||'').localeCompare(a.dataset.fecha||''); });
-  posts.forEach(function(p){ lista.insertBefore(p, vacio); });
-
-  var conteo = {tecnologia:0, politica:0, govtech:0};
-  posts.forEach(function(p){
-    var cat = p.dataset.cat;
-    if (conteo[cat] !== undefined) conteo[cat]++;
-
-    var f = (p.dataset.fecha||'').split('-');
-    var elF = p.querySelector('.fecha');
-    if (elF && f.length===3) elF.textContent = f[2]+' '+MESES[+f[1]-1]+' '+f[0];
-
+  /* --- Las notas, leídas de los <article> --- */
+  var notas = Array.prototype.slice.call(fuente.querySelectorAll('.post')).map(function(p){
+    var f      = (p.dataset.fecha || '').split('-');
     var cuerpo = p.querySelector('.cuerpo');
-    var palabras = (cuerpo ? cuerpo.textContent : '').trim().split(/\s+/).length;
-    var elT = p.querySelector('.tiempo');
-    if (elT) elT.textContent = Math.max(1, Math.round(palabras/200)) + ' min de lectura';
-
-    var sello = document.createElement('div');
-    sello.className = 'sello';
-    sello.innerHTML = iris(p.id || 'nota');
-    p.insertBefore(sello, p.firstChild);
+    var h2     = p.querySelector('h2');
+    var baj    = p.querySelector('.bajada');
+    var pal    = (cuerpo ? cuerpo.textContent : '').trim().split(/\s+/).length;
+    return {
+      id: p.id,
+      cat: p.dataset.cat,
+      iso: p.dataset.fecha || '',
+      fecha: f.length === 3 ? f[2]+' '+MESES[+f[1]-1]+' '+f[0] : '',
+      min: Math.max(1, Math.round(pal/200)),
+      titulo: h2 ? h2.textContent.trim() : '',
+      bajada: baj ? baj.textContent.trim() : '',
+      cuerpo: cuerpo ? cuerpo.innerHTML : '',
+      texto: normalizar(p.textContent)
+    };
   });
+  notas.sort(function(a,b){ return b.iso.localeCompare(a.iso); });
 
-  var partes = Object.keys(conteo).map(function(c){
-    return '<span><span class="pip" style="background:var(--'+c+')"></span>'+
-           NOMBRES[c].toUpperCase()+' <b>'+String(conteo[c]).padStart(2,'0')+'</b></span>';
-  });
-  /* Toma la primera nota con fecha válida (AAAA-MM-DD); si ninguna la tiene,
-     no muestra "ÚLTIMA ENTRADA" en vez de imprimir "undefined.undefined". */
-  var reciente = posts.map(function(p){ return (p.dataset.fecha||'').split('-'); })
-                      .find(function(f){ return f.length===3 && f[0] && f[1] && f[2]; });
-  if (reciente) partes.push('<span>ÚLTIMA ENTRADA <b>'+reciente[2]+'.'+reciente[1]+'.'+reciente[0].slice(2)+'</b></span>');
-  estado.innerHTML = partes.join('');
+  var porId = {};
+  var conteo = {tecnologia:0, politica:0, govtech:0};
+  notas.forEach(function(n){ porId[n.id] = n; if (conteo[n.cat] !== undefined) conteo[n.cat]++; });
 
-  /* --- Búsqueda, filtro y archivo en una sola función --- */
-  var LIMITE_PORTADA = 10;   /* cuántas notas van completas en la portada */
-  var buscador = document.getElementById('buscador');
-  var divisor  = document.getElementById('divisor');
-  var divConteo = document.getElementById('divisor-conteo');
+  var est = {cat:'todo', q:''};     /* qué lista se está mirando y qué se buscó */
+  var colorSel = 'todo';            /* color del ojo de la pantalla actual */
 
-  function normalizar(s){
-    return s.normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();
+  /* ---------- Inicio: las opciones ---------- */
+  function opcion(cat, nombre, n, i){
+    return '<a class="opcion anim" data-cat="'+cat+'" href="#t/'+cat+'" style="--i:'+(i+1)+'">'+
+           '<i></i>'+nombre+'<span class="n">'+dos(n)+'</span></a>';
   }
-  posts.forEach(function(p){ p._texto = normalizar(p.textContent); });
+  opciones.innerHTML = ORDEN.map(function(c,i){ return opcion(c, NOMBRES[c], conteo[c], i); }).join('') +
+                       opcion('todo', 'Todo', notas.length, 3);
 
-  /* El divisor se ubica justo antes de la primera nota del archivo */
-  if (posts[LIMITE_PORTADA]) lista.insertBefore(divisor, posts[LIMITE_PORTADA]);
-  else divisor.remove();
+  /* Pasar el mouse (o enfocar) una opción: el ojo toma su color y la mira */
+  function previsualizar(a){
+    if (!a) return;
+    body.dataset.color = a.dataset.cat;
+    var r = a.getBoundingClientRect();
+    window.ojoMirada.on = true;
+    window.ojoMirada.x = r.left + r.width/2;
+    window.ojoMirada.y = r.top + r.height/2;
+  }
+  function soltar(){
+    body.dataset.color = colorSel;
+    window.ojoMirada.on = false;
+  }
+  function dentro(e){ return e.relatedTarget && e.relatedTarget.closest && e.relatedTarget.closest('.opcion'); }
+  opciones.addEventListener('mouseover', function(e){ previsualizar(e.target.closest('.opcion')); });
+  opciones.addEventListener('mouseout',  function(e){ if (e.target.closest('.opcion') && !dentro(e)) soltar(); });
+  opciones.addEventListener('focusin',   function(e){ previsualizar(e.target.closest('.opcion')); });
+  opciones.addEventListener('focusout',  function(e){ if (!dentro(e)) soltar(); });
 
-  function aplicar(){
-    var q = normalizar(buscador.value.trim());
-    var f = lista.dataset.filtro;
-    var visibles = 0;
-
-    posts.forEach(function(p){
-      var pasa = (f==='todo' || p.dataset.cat===f) && (!q || p._texto.indexOf(q)>-1);
-      p.classList.toggle('oculto-busqueda', !pasa);
-      if (pasa) visibles++;
+  /* ---------- Lista ---------- */
+  function filtradas(){
+    return notas.filter(function(n){
+      return (est.cat === 'todo' || n.cat === est.cat) && (!est.q || n.texto.indexOf(est.q) > -1);
     });
-
-    /* El archivo solo existe en la vista completa, sin filtro ni búsqueda */
-    var modo = (f==='todo' && !q);
-    lista.classList.toggle('modo-archivo', modo);
-    posts.forEach(function(p,i){
-      p.classList.toggle('en-archivo', modo && i>=LIMITE_PORTADA);
-    });
-    if (posts[0]) posts[0].classList.toggle('destacado', modo);
-    if (divConteo) divConteo.textContent = Math.max(0, posts.length-LIMITE_PORTADA) + ' notas anteriores';
-
-    lista.classList.toggle('sin-resultados', visibles===0);
   }
 
-  filtros.addEventListener('click', function(e){
-    var b = e.target.closest('button');
-    if (!b) return;
-    cerrar();
-    lista.dataset.filtro = b.dataset.f;
-    Array.prototype.forEach.call(filtros.querySelectorAll('button'), function(x){
-      x.setAttribute('aria-pressed', x===b ? 'true' : 'false');
-    });
-    aplicar();
-  });
+  function renderLista(animar){
+    var items = filtradas();
+    var nombre = est.cat === 'todo' ? 'Todo' : NOMBRES[est.cat];
+    var tabs = ['todo'].concat(ORDEN).map(function(c){
+      return '<a href="#t/'+c+'"'+(c === est.cat ? ' aria-current="true"' : '')+'>'+(c === 'todo' ? 'Todo' : NOMBRES[c])+'</a>';
+    }).join('');
 
+    cabLista.innerHTML =
+      '<a class="volver" href="#">← Inicio</a>'+
+      '<h2 class="lista-titulo">'+nombre+'<small>'+dos(items.length)+'</small></h2>'+
+      '<nav class="tabs" aria-label="Tipo de nota">'+tabs+'</nav>';
+
+    itemsEl.innerHTML = items.length ? items.map(function(n,i){
+      return '<a class="item anim" data-cat="'+n.cat+'" href="#'+n.id+'" style="--i:'+i+'">'+
+               '<span class="item-texto">'+
+                 '<span class="item-meta"><span class="cat">'+NOMBRES[n.cat]+'</span><span>'+n.fecha+'</span><span>'+n.min+' min de lectura</span></span>'+
+                 '<span class="item-titulo">'+esc(n.titulo)+'</span>'+
+                 '<span class="item-bajada">'+esc(n.bajada)+'</span>'+
+               '</span>'+
+               '<span class="sello">'+iris(n.id)+'</span>'+
+             '</a>';
+    }).join('') : '<p class="vacio">No hay notas que coincidan con la búsqueda.</p>';
+
+    panelLista.classList.toggle('quieta', !animar);
+  }
+
+  /* ---------- Nota ---------- */
+  function renderNota(n){
+    notaEl.dataset.cat = n.cat;
+    notaEl.innerHTML =
+      '<a class="volver anim" style="--i:0" href="#t/'+n.cat+'">← Volver a '+NOMBRES[n.cat]+'</a>'+
+      '<div class="item-meta anim" style="--i:1"><span class="cat">'+NOMBRES[n.cat]+'</span><span>'+n.fecha+'</span><span>'+n.min+' min de lectura</span></div>'+
+      '<h2 class="lectura-titulo anim" style="--i:2">'+esc(n.titulo)+'</h2>'+
+      '<p class="lectura-bajada anim" style="--i:3">'+esc(n.bajada)+'</p>'+
+      '<div class="cuerpo anim" style="--i:4">'+n.cuerpo+'</div>';
+  }
+
+  /* Mientras se lee, el ojo mira hacia el texto y baja con el avance */
+  function mirarLectura(){
+    if (body.dataset.vista !== 'nota') return;
+    var max = document.documentElement.scrollHeight - innerHeight;
+    var p = max > 0 ? clamp(scrollY/max, 0, 1) : 0;
+    window.ojoMirada.on = true;
+    window.ojoMirada.x = innerWidth*.7;
+    window.ojoMirada.y = innerHeight*(.2 + .6*p);
+  }
+  var pendiente = false;
+  window.addEventListener('scroll', function(){
+    if (pendiente) return;
+    pendiente = true;
+    requestAnimationFrame(function(){ pendiente = false; mirarLectura(); });
+  }, {passive:true});
+
+  /* ---------- Pantallas ---------- */
+  function destino(){
+    var h = '';
+    try { h = decodeURIComponent(location.hash.slice(1)); } catch(e){ h = ''; }
+    if (!h) return {v:'inicio'};
+    if (h.indexOf('t/') === 0){
+      var c = h.slice(2);
+      return {v:'lista', cat:(c === 'todo' || NOMBRES[c]) ? c : 'todo'};
+    }
+    if (porId[h]) return {v:'nota', n:porId[h]};
+    return {v:'inicio'};
+  }
+
+  var paneles = {inicio:panelInicio, lista:panelLista, nota:panelNota};
+  var vistaActual = null, token = 0, primera = true;
+
+  function entrar(panel, tipo, base){
+    panel.dataset.entrada = tipo;
+    panel.style.setProperty('--base', base+'s');
+    panel.classList.remove('entra');
+    void panel.offsetWidth;                 /* reinicia las animaciones */
+    panel.classList.add('entra');
+  }
+
+  function mostrar(){
+    var d = destino();
+    var mio = ++token;
+
+    function aplicar(){
+      if (mio !== token) return;
+      Object.keys(paneles).forEach(function(k){ paneles[k].classList.remove('sale'); });
+      var antes = vistaActual;
+      vistaActual = d.v;
+      var primerisima = primera;
+      primera = false;
+
+      if (d.v === 'inicio'){
+        est.q = ''; buscador.value = '';
+        colorSel = 'todo';
+        document.title = TITULO_HOME;
+        entrar(panelInicio, 'subir', primerisima ? 1.1 : .35);
+      } else if (d.v === 'lista'){
+        est.cat = d.cat;
+        colorSel = d.cat;
+        renderLista(true);
+        document.title = (d.cat === 'todo' ? 'Todas las notas' : NOMBRES[d.cat]) + ' — ' + TITULO;
+        entrar(panelLista, antes === 'nota' ? 'arriba' : 'derecha', .45);
+      } else {
+        colorSel = d.n.cat;
+        renderNota(d.n);
+        document.title = d.n.titulo + ' — ' + TITULO;
+        entrar(panelNota, 'abajo', .35);
+      }
+
+      body.dataset.vista = d.v;
+      body.dataset.color = colorSel;
+      window.ojoMirada.on = false;
+      window.scrollTo(0, 0);
+      mirarLectura();
+      if (window.ojoApi) window.ojoApi.parpadear();
+    }
+
+    if (primera || reducido || !vistaActual){ aplicar(); return; }
+    paneles[vistaActual].classList.add('sale');     /* sale la pantalla actual y recién ahí cambia todo */
+    setTimeout(aplicar, 230);
+  }
+
+  /* ---------- Buscador y teclado ---------- */
   buscador.addEventListener('input', function(){
-    cerrar();
-    aplicar();
+    est.q = normalizar(buscador.value.trim());
+    if (body.dataset.vista === 'lista'){ renderLista(false); return; }
+    if (est.q){
+      if (location.hash === '#t/todo') mostrar(); else location.hash = '#t/todo';
+    }
   });
-
-  aplicar();
-
-  /* Cambiar la URL puede estar prohibido (previews en iframe, file://).
-     Si falla, la nota se abre igual: solo se pierde el link directo. */
-  function urlHacia(destino){
-    try { history.pushState(null, '', destino); } catch(e){ /* entorno restringido */ }
-  }
-
-  function abrir(p, empujar){
-    posts.forEach(function(x){ x.classList.remove('abierto'); });
-    p.classList.add('abierto');
-    p.classList.remove('en-archivo','oculto-busqueda');
-    document.body.classList.add('leyendo');
-    if (empujar) urlHacia('#'+p.id);
-    window.scrollTo(0,0);
-    document.title = p.querySelector('h2').textContent + ' — ' + TITULO;
-  }
-  function cerrar(){
-    if (!document.body.classList.contains('leyendo')) return;
-    document.body.classList.remove('leyendo');
-    posts.forEach(function(x){ x.classList.remove('abierto'); });
-    aplicar();
-    document.title = TITULO + ' — Tecnología, política y govtech';
-  }
-
-  lista.addEventListener('click', function(e){
-    var t = e.target.closest('h2 button, .leer');
-    if (!t) return;
-    abrir(t.closest('.post'), true);
-  });
-
-  volver.addEventListener('click', function(){
-    cerrar();
-    if (location.hash) urlHacia(location.pathname);
-  });
-
-  function desdeHash(){
-    var id = location.hash.slice(1);
-    if (!id){ cerrar(); return; }
-    var p = document.getElementById(id);
-    if (p && p.classList.contains('post')) abrir(p, false);
-  }
-  window.addEventListener('popstate', desdeHash);
-  window.addEventListener('hashchange', desdeHash);
-  desdeHash();
 
   document.addEventListener('keydown', function(e){
-    if (e.key==='Escape'){ cerrar(); if (location.hash) urlHacia(location.pathname); }
+    if (e.key !== 'Escape') return;
+    var v = body.dataset.vista;
+    if (v === 'nota'){ var n = destino().n; location.hash = '#t/' + (n ? n.cat : 'todo'); }
+    else if (est.q){ buscador.value = ''; est.q = ''; if (v === 'lista') renderLista(false); }
+    else if (v === 'lista'){ location.hash = ''; }
   });
 
+  window.addEventListener('hashchange', mostrar);
+  mostrar();
 })();
 </script>
 <script>
-/* Ojo de partículas — Orwelliano Eyes
-   Un canvas detrás de la cabecera: ~2000 triángulos forman el ojo, más
-   triángulos sueltos flotando. Reacciona al cursor, a los filtros y a la
-   apertura de una nota. */
+/* Ojo de partículas v2 — Orwelliano Eyes
+   Un canvas fijo ocupa toda la ventana. El ojo se dibuja donde esté #ojo (el
+   "lugar" que reserva la página): cuando la página cambia ese lugar de sitio o
+   de tamaño, los triángulos fluyen hasta el nuevo lugar. Cada triángulo tiene
+   su propio resorte, así que no llegan todos juntos: se ve una corriente. */
 (function(){
   'use strict';
 
-  var cab      = document.querySelector('.masthead');
-  var cv       = document.getElementById('lienzo');
-  var lista    = document.getElementById('lista');
-  var marcador = document.getElementById('ojo');   /* reserva el espacio del ojo en pantallas angostas */
-  if (!cab || !cv || !lista || !marcador || !cv.getContext) return;
+  var cv   = document.getElementById('lienzo');
+  var slot = document.getElementById('ojo');
+  var body = document.body;
+  if (!cv || !slot || !cv.getContext) return;
 
   var ctx    = cv.getContext('2d');
   var quieto = matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -1021,8 +1131,8 @@ footer{margin-top:5rem;padding:2rem 1.5rem 3.5rem}
   var BASE = [[128,82,255],[255,255,255],[255,199,56],[255,99,75],[108,170,109]];
   var CAT  = {tecnologia:2, politica:3, govtech:4};
 
-  /* Resorte que lleva cada triángulo a su lugar, y empuje del cursor */
-  var K = 55, AMORT = 7.5, R_MOUSE = 105, F_MOUSE = 2800;
+  /* Resorte base, amortiguación y empuje del cursor */
+  var K = 55, R_MOUSE = 105, F_MOUSE = 2800;
 
   function clamp(v,a,b){ return v<a ? a : (v>b ? b : v); }
   function suave(u){ return u*u*(3-2*u); }
@@ -1037,7 +1147,7 @@ footer{margin-top:5rem;padding:2rem 1.5rem 3.5rem}
     };
   }
 
-  /* ---------- Geometría del ojo (mismo dibujo que el SVG, caja de 120 x 64) ---------- */
+  /* ---------- Geometría del ojo (caja de 120 x 64) ---------- */
   var C1 = [[3,32],[26,5],[94,5],[117,32]];
   var C2 = [[117,32],[94,59],[26,59],[3,32]];
   var I1 = [[14,32],[32,14],[88,14],[106,32]];
@@ -1050,7 +1160,6 @@ footer{margin-top:5rem;padding:2rem 1.5rem 3.5rem}
       u*u*u*c[0][1] + 3*u*u*t*c[1][1] + 3*u*t*t*c[2][1] + t*t*t*c[3][1]
     ];
   }
-  /* n puntos a igual distancia a lo largo de las curvas */
   function muestrear(curvas, n){
     var d = [], ac = [0], i, k;
     curvas.forEach(function(c){ for (k=0;k<=200;k++) d.push(bez(c,k/200)); });
@@ -1063,7 +1172,6 @@ footer{margin-top:5rem;padding:2rem 1.5rem 3.5rem}
     }
     return out;
   }
-  /* Medio alto del párpado en cada x: sirve para recortar el iris */
   var mitad = new Float32Array(241);
   (function(){
     for (var k=0;k<=600;k++){
@@ -1075,15 +1183,15 @@ footer{margin-top:5rem;padding:2rem 1.5rem 3.5rem}
   function alto(x){ var i = Math.round(x*2); return (i<0 || i>240) ? 0 : mitad[i]; }
 
   /* ---------- Estado ---------- */
-  var W=0, H=0, dpr=1, eyeW=400, cx=0, cy=0, S=3.3, kk=1, DISP=400, RM=105, RM2=11025, D=0;
+  var W=0, H=0, dpr=1, cx=0, cy=0, eyeT=400, S=0, kk=1, act=1, ambF=1, DISP=400, RM=105, RM2=11025, D=0;
   var P=[], AMB=[], lim=0;
   var sc = quieto ? 0 : 1;              /* 1 = disperso, 0 = armado */
   var gx=0, gy=0, tx=0, ty=0, proxMirada=0;
   var b0=-9, b1=-9, proxParp=3, blink=0;
   var cur = BASE.map(copia), desde = BASE.map(copia), hasta = BASE.map(copia), tw = 1;
-  var modo = lista.dataset.filtro || 'todo';
+  var modo = 'todo';
   var mx=-1e4, my=-1e4, mouseOn=false, tMouse=0;
-  var raf=0, tPrev=0, t0=0, visible=true, ema=.016, cuenta=0;
+  var raf=0, tPrev=0, t0=0, ema=.016, cuenta=0;
   var bk = []; for (var q=0;q<20;q++) bk.push([]);
   var HX=0, HY=0, CF=1;
 
@@ -1099,9 +1207,11 @@ footer{margin-top:5rem;padding:2rem 1.5rem 3.5rem}
     /* tipo 0 = borde, 1 = mirada (se mueve con el cursor), 2 = relleno */
     function add(tipo,bx,by,a,z,w){
       var ang = Math.atan2(by-32, bx-60) + (r()-.5)*1.4;
+      var k = K*(.5+r()*1.0);               /* cada triángulo, su propio resorte */
       P.push({t:tipo, bx:bx, by:by, x:0, y:0, vx:0, vy:0, a:a, z:z, c:pal(w),
               th:r()*6.283, sp:(r()-.5)*1.2, f1:r()*6.283, f2:r()*6.283, d:r(),
-              ex:Math.cos(ang), ey:Math.sin(ang), R:.6+r()*.9});
+              ex:Math.cos(ang), ey:Math.sin(ang), R:.6+r()*.9,
+              k:k, am:1.01*Math.sqrt(k), rango:0});
     }
     muestrear([C1,C2], Math.round(340*dens)).forEach(function(p){ add(0,p[0],p[1], .55+r()*.45, 2.0+r()*1.6, W_BORDE); });
     muestrear([I1,I2], Math.round(200*dens)).forEach(function(p){ add(0,p[0],p[1], .30+r()*.30, 1.6+r()*1.2, W_BORDE); });
@@ -1116,28 +1226,29 @@ footer{margin-top:5rem;padding:2rem 1.5rem 3.5rem}
     anillo(15, Math.round(120*dens));
     anillo(10, Math.round(90*dens), 6);
 
-    for (var j=0;j<14;j++){                       /* rayos del iris */
+    for (var j=0;j<14;j++){
       var a = j/14*6.2832;
       for (var m=0;m<6;m++){
         var rr = 6.5 + m*1.7;
         add(1, 60+Math.cos(a)*rr, 32+Math.sin(a)*rr, .35+r()*.25, 1.3+r()*.9, W_MIRA);
       }
     }
-    var np = Math.round(130*dens);                /* pupila: disco relleno */
+    var np = Math.round(130*dens);
     for (var i=0;i<np;i++){
       var rp = 5.2*Math.sqrt((i+.5)/np), ap = i*2.39996;
       add(1, 60+Math.cos(ap)*rp, 32+Math.sin(ap)*rp, .7+r()*.3, 1.8+r()*.9, W_PUPI);
     }
-    var nr = Math.round(230*dens), g = 0;         /* relleno disperso dentro del párpado */
+    var nr = Math.round(230*dens), g = 0;
     while (g < nr){
       var x = 6 + r()*108, h = alto(x)*.92, y = 32 + (r()*2-1)*h;
       if (h < 2) continue;
       add(2, x, y, .25+r()*.40, 1.4+r()*1.4, W_TODO);
       g++;
     }
-    for (var s=P.length-1; s>0; s--){             /* mezcla: si hace falta aligerar, se quita parejo */
+    for (var s=P.length-1; s>0; s--){
       var k = Math.floor(r()*(s+1)), tmp = P[s]; P[s] = P[k]; P[k] = tmp;
     }
+    for (var u=0; u<P.length; u++) P[u].rango = u/P.length;   /* para aligerar parejo */
   }
 
   function ambiente(n){
@@ -1155,26 +1266,16 @@ footer{margin-top:5rem;padding:2rem 1.5rem 3.5rem}
     }
   }
 
-  /* Dónde quiere estar cada triángulo del ojo ahora mismo */
   function casa(p, t, s, resp){
     var bx = p.bx, by = p.by, cf = 1;
     if (p.t === 1){
       bx += gx*11; by += gy*5;
-      cf = clamp((alto(bx) - Math.abs(by-32)) / 3, 0, 1);   /* el párpado recorta el iris */
+      cf = clamp((alto(bx) - Math.abs(by-32)) / 3, 0, 1);
     }
     by = 32 + (by-32)*(1 - .93*blink);
     HX = cx + (bx-60)*S*resp + Math.sin(t*.9+p.f1)*1.5*kk + p.ex*s*DISP*p.R;
     HY = cy + (by-32)*S*resp + Math.cos(t*.8+p.f2)*1.5*kk + p.ey*s*DISP*p.R;
     CF = cf;
-  }
-
-  function colocar(){
-    var resp = 1;
-    for (var i=0;i<P.length;i++){
-      var p = P[i], u = suave(clamp((sc - p.d*.35)/.65, 0, 1));
-      casa(p, 0, u, resp);
-      p.x = HX; p.y = HY; p.vx = 0; p.vy = 0;
-    }
   }
 
   function encolar(p, a){
@@ -1209,9 +1310,28 @@ footer{margin-top:5rem;padding:2rem 1.5rem 3.5rem}
     ctx.globalAlpha = 1;
   }
 
-  /* Un cuadro de simulación + dibujo. fijo = sin física (movimiento reducido) */
+  /* Dónde está el lugar del ojo ahora mismo (la página lo mueve con CSS) */
+  function leerSlot(){
+    var r = slot.getBoundingClientRect();
+    eyeT = Math.max(1, r.width);
+    cx = r.left + r.width/2;
+    cy = r.top + r.height/2;
+  }
+
   function paso(t, dt, fijo){
     var i, p, n = lim;
+    leerSlot();
+    var St = eyeT/120;
+    if (!S || fijo) S = St; else S += (St - S) * (1 - Math.exp(-dt*5));
+    kk = clamp(S/4.3, .55, 1.15);
+    DISP = Math.max(eyeT*.9, 380);
+    RM = R_MOUSE*kk; RM2 = RM*RM;
+
+    var actT = clamp(eyeT/520, .5, 1);            /* ojo chico: menos triángulos */
+    act += (actT - act) * (fijo ? 1 : (1 - Math.exp(-dt*4)));
+    var ambT = body.dataset.vista === 'nota' ? .3 : 1;   /* leyendo, menos ruido de fondo */
+    ambF += (ambT - ambF) * (fijo ? 1 : (1 - Math.exp(-dt*3)));
+
     for (i=0;i<20;i++) bk[i].length = 0;
     var resp = 1 + .012*Math.sin(t*.8);
 
@@ -1221,7 +1341,7 @@ footer{margin-top:5rem;padding:2rem 1.5rem 3.5rem}
       casa(p, t, u, resp);
       if (fijo){ p.x = HX; p.y = HY; }
       else {
-        var ax = (HX-p.x)*K - p.vx*AMORT, ay = (HY-p.y)*K - p.vy*AMORT;
+        var ax = (HX-p.x)*p.k - p.vx*p.am, ay = (HY-p.y)*p.k - p.vy*p.am;
         if (mouseOn){
           var dx = p.x-mx, dy = p.y-my, d2 = dx*dx + dy*dy;
           if (d2 < RM2){
@@ -1232,7 +1352,8 @@ footer{margin-top:5rem;padding:2rem 1.5rem 3.5rem}
         p.vx += ax*dt; p.vy += ay*dt;
         p.x += p.vx*dt; p.y += p.vy*dt;
       }
-      var a = p.a * CF * (1-u);
+      var vis = clamp((act - p.rango)*14 + .5, 0, 1);
+      var a = p.a * CF * (1-u) * vis;
       if (p.t === 2) a *= .7 + .3*Math.sin(t*1.7 + p.f1*3);
       encolar(p, a);
     }
@@ -1253,13 +1374,13 @@ footer{margin-top:5rem;padding:2rem 1.5rem 3.5rem}
         if (p.x < -12) p.x = W+12; else if (p.x > W+12) p.x = -12;
         if (p.y < -12) p.y = H+12; else if (p.y > H+12) p.y = -12;
       }
-      encolar(p, p.a * (1-sc) * (.65 + .35*Math.sin(t*1.3 + p.f1)));
+      encolar(p, p.a * (1-sc) * ambF * (.65 + .35*Math.sin(t*1.3 + p.f1)));
     }
     dibujar(t);
   }
 
   /* ---------- Bucle ---------- */
-  function activo(){ return visible && !document.hidden; }
+  function activo(){ return !document.hidden; }
 
   function cuadro(ts){
     raf = 0;
@@ -1269,14 +1390,17 @@ footer{margin-top:5rem;padding:2rem 1.5rem 3.5rem}
     tPrev = t;
     if (!t0) t0 = t;
 
-    var leyendo = document.body.classList.contains('leyendo');
-    var meta = (leyendo || t - t0 < .35) ? 1 : 0;
+    var meta = (t - t0 < .35) ? 1 : 0;
     sc += (meta - sc) * (1 - Math.exp(-dt*(meta ? 2.4 : 1.5)));
     if (Math.abs(meta - sc) < .004) sc = meta;
 
-    /* Mirada: sigue al cursor con inercia; sin cursor, recorre la escena */
-    var ahora = performance.now()/1000;
-    if (mouseOn && ahora - tMouse < 4){
+    /* Mirada: la página puede pedir que mire un punto (una opción, el avance
+       de la lectura); si no, sigue al cursor con inercia; sin cursor, recorre. */
+    var M = window.ojoMirada, ahora = performance.now()/1000;
+    if (M && M.on){
+      tx = clamp((M.x-cx)/(W*.45), -1, 1);
+      ty = clamp((M.y-cy)/(H*.5), -1, 1);
+    } else if (mouseOn && ahora - tMouse < 4){
       tx = clamp((mx-cx)/(W*.45), -1, 1);
       ty = clamp((my-cy)/(H*.5), -1, 1);
     } else if (t > proxMirada){
@@ -1287,7 +1411,6 @@ footer{margin-top:5rem;padding:2rem 1.5rem 3.5rem}
     var ka = 1 - Math.exp(-dt*6);
     gx += (tx-gx)*ka; gy += (ty-gy)*ka;
 
-    /* Parpadeo, a veces doble */
     if (t > proxParp){
       b0 = t; b1 = Math.random() < .3 ? t + .34 : -9;
       proxParp = t + 3.5 + Math.random()*5;
@@ -1295,7 +1418,6 @@ footer{margin-top:5rem;padding:2rem 1.5rem 3.5rem}
     var u0 = (t-b0)/.24, u1 = (t-b1)/.24;
     blink = Math.max((u0>0 && u0<1) ? Math.sin(Math.PI*u0) : 0, (u1>0 && u1<1) ? Math.sin(Math.PI*u1) : 0);
 
-    /* Cambio de color al filtrar */
     if (tw < 1){
       tw = Math.min(1, tw + dt/.9);
       var e = suave(tw);
@@ -1304,15 +1426,10 @@ footer{margin-top:5rem;padding:2rem 1.5rem 3.5rem}
 
     paso(t, dt, false);
 
-    /* Si el equipo no da, se aligera la cantidad de triángulos */
-    /* Solo cuenta si el cuadro tardó entre 26 y 100 ms: más que eso es el navegador
-       frenando la pestaña, no un equipo lento. */
     if (crudo < .1){
       ema = ema*.95 + crudo*.05;
       if (++cuenta > 90 && ema > .026 && lim > P.length*.4){ lim = Math.floor(lim*.75); cuenta = 0; }
     }
-
-    if (leyendo && sc === 1) return;        /* nota abierta: todo apagado, el bucle descansa */
     raf = requestAnimationFrame(cuadro);
   }
 
@@ -1324,32 +1441,25 @@ footer{margin-top:5rem;padding:2rem 1.5rem 3.5rem}
 
   /* ---------- Medidas ---------- */
   function medir(){
-    var r = cab.getBoundingClientRect();
+    var r = cv.getBoundingClientRect();
     W = Math.max(1, r.width); H = Math.max(1, r.height);
     dpr = Math.min(2, window.devicePixelRatio || 1);
     cv.width = Math.round(W*dpr); cv.height = Math.round(H*dpr);
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
 
-    if (W >= 900){
-      var inr = cab.querySelector('.masthead-in').getBoundingClientRect();
-      eyeW = Math.min(500, W*.4);
-      cx = (inr.right - r.left) - eyeW/2 - 8;
-      cy = H*.42;
-    } else {
-      var m = marcador.getBoundingClientRect();
-      eyeW = m.width;
-      cx = m.left - r.left + m.width/2;
-      cy = m.top - r.top + m.height/2;
-    }
-    S = eyeW/120;
-    kk = clamp(S/4.3, .55, 1.15);
-    DISP = Math.max(eyeW*.9, 380);
-    RM = R_MOUSE*kk; RM2 = RM*RM;
-
     var dn = W >= 900 ? 1.5 : (W >= 600 ? 1.1 : .75);
-    if (dn !== D){ D = dn; crear(D); lim = P.length; colocar(); }
-    var na = W >= 900 ? 150 : (W >= 600 ? 90 : 45);
+    if (dn !== D){ D = dn; crear(D); lim = P.length; S = 0; leerSlot(); colocar(); }
+    var na = clamp(Math.round(W*H/5200), 40, 220);
     if (!AMB.length || Math.abs(AMB.length-na) > na*.25) ambiente(na);
+  }
+
+  function colocar(){
+    S = eyeT/120; kk = clamp(S/4.3, .55, 1.15); DISP = Math.max(eyeT*.9, 380);
+    for (var i=0;i<P.length;i++){
+      var p = P[i], u = suave(clamp((sc - p.d*.35)/.65, 0, 1));
+      casa(p, 0, u, 1);
+      p.x = HX; p.y = HY; p.vx = 0; p.vy = 0;
+    }
   }
 
   function refrescar(){
@@ -1359,15 +1469,8 @@ footer{margin-top:5rem;padding:2rem 1.5rem 3.5rem}
   /* ---------- Eventos ---------- */
   function parpadear(){ b0 = performance.now()/1000; b1 = -9; }
 
-  function impulso(){
-    for (var i=0;i<P.length;i++){
-      var p = P[i], v = (130 + p.R*120)*kk;
-      p.vx += p.ex*v; p.vy += p.ey*v;
-    }
-  }
-
   function cambioModo(){
-    var m = lista.dataset.filtro || 'todo';
+    var m = body.dataset.color || 'todo';
     if (m === modo) return;
     modo = m;
     desde = cur.map(copia);
@@ -1377,45 +1480,35 @@ footer{margin-top:5rem;padding:2rem 1.5rem 3.5rem}
       hasta = [copia(cc), mezcla(cc,[255,255,255],.5), copia(cc), copia(cc), copia(cc)];
     }
     if (quieto){ cur = hasta.map(copia); tw = 1; }
-    else { tw = 0; parpadear(); impulso(); }
+    else tw = 0;
     refrescar();
   }
 
-  new MutationObserver(cambioModo).observe(lista, {attributes:true, attributeFilter:['data-filtro']});
-  new MutationObserver(function(){
-    if (quieto) cv.style.opacity = document.body.classList.contains('leyendo') ? 0 : 1;
-    else despertar();
-  }).observe(document.body, {attributes:true, attributeFilter:['class']});
+  new MutationObserver(function(){ cambioModo(); refrescar(); })
+    .observe(body, {attributes:true, attributeFilter:['data-color','data-vista']});
 
   if (hayMouse && !quieto){
     window.addEventListener('mousemove', function(e){
-      var r = cab.getBoundingClientRect();
-      mx = e.clientX - r.left; my = e.clientY - r.top;
+      mx = e.clientX; my = e.clientY;
       mouseOn = true; tMouse = performance.now()/1000;
-      despertar();
     }, {passive:true});
     document.addEventListener('mouseleave', function(){ mouseOn = false; });
   }
 
-  if ('IntersectionObserver' in window){
-    new IntersectionObserver(function(es){
-      visible = es[0].isIntersecting;
-      if (visible) despertar();
-    }).observe(cab);
-  }
   document.addEventListener('visibilitychange', despertar);
 
   if ('ResizeObserver' in window){
-    new ResizeObserver(function(){ medir(); refrescar(); }).observe(cab);
+    new ResizeObserver(function(){ medir(); refrescar(); }).observe(cv);
   } else {
     window.addEventListener('resize', function(){ medir(); refrescar(); });
   }
+  if (quieto) window.addEventListener('scroll', function(){ paso(0, 0, true); }, {passive:true});
+
+  /* La navegación le avisa cuando cambia de pantalla */
+  window.ojoApi = {parpadear: parpadear};
 
   medir();
-  if (quieto){
-    cv.style.opacity = document.body.classList.contains('leyendo') ? 0 : 1;
-    paso(0, 0, true);
-  } else despertar();
+  if (quieto) paso(0, 0, true); else despertar();
 })();
 </script>
 </body>
