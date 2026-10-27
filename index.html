@@ -23,23 +23,26 @@
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;700;800&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,600;1,6..72,400&family=Archivo+Narrow:wght@500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,600;1,6..72,400&display=swap" rel="stylesheet">
 
 <style>
 :root{
-  --ink:#060606;
-  --paper:#E3E3E3;
-  --dim:#8A8A8A;
-  --rule:rgba(227,227,227,.15);
+  --ink:#000000;
+  --paper:#ffffff;
+  --dim:#9a9a9a;
+  --mist:#bdbdbd;
+  --lectura:#ededed;
+  --rule:rgba(255,255,255,.25);
+  --iris:#8052ff;
 
   --tecnologia:#FFC738;
   --politica:#FF634B;
   --govtech:#6CAA6D;
   --c:var(--paper);
 
-  --display:'Archivo',Helvetica,Arial,sans-serif;
+  --display:'Inter',Helvetica,Arial,sans-serif;
   --body:'Newsreader',Georgia,serif;
-  --util:'Archivo Narrow','Archivo',Helvetica,sans-serif;
+  --util:'Inter',Helvetica,Arial,sans-serif;
 
   --max:64rem;
 }
@@ -59,7 +62,7 @@ a{color:inherit}
 :focus-visible{outline:2px solid var(--c);outline-offset:3px}
 
 /* ---------- CABECERA ---------- */
-.masthead{position:relative;border-bottom:1px solid var(--rule);padding:2.2rem 1.5rem 0;overflow:hidden}
+.masthead{position:relative;padding:2.2rem 1.5rem 2.5rem;overflow:hidden}
 .masthead-in{position:relative;z-index:1;max-width:var(--max);margin:0 auto}
 
 /* El ojo de partículas se dibuja en este canvas, detrás de la cabecera. */
@@ -76,63 +79,64 @@ a{color:inherit}
 
 .logo{
   font-family:var(--display);
-  font-weight:800;
-  font-size:clamp(2.3rem,8.5vw,4.4rem);
-  letter-spacing:-.045em;
-  line-height:.92;
+  font-weight:400;
+  font-size:clamp(2.8rem,8.5vw,5.2rem);
+  letter-spacing:-.04em;
+  line-height:1;
   margin:0;
-  text-transform:uppercase;
 }
 .tagline{
   font-family:var(--util);
   font-weight:500;
-  font-size:.78rem;
-  letter-spacing:.2em;
+  font-size:.74rem;
+  letter-spacing:.16em;
   text-transform:uppercase;
   color:var(--dim);
-  margin:.9rem 0 0;
+  margin:1.2rem 0 0;
 }
 
 .estado{
   font-family:var(--util);
   font-weight:600;
-  font-size:.74rem;
-  letter-spacing:.14em;
+  font-size:.7rem;
+  letter-spacing:.1em;
   color:var(--dim);
   text-transform:uppercase;
-  border-top:1px solid var(--rule);
-  margin-top:1.6rem;
-  padding:.75rem 0;
-  display:flex;flex-wrap:wrap;gap:1.2rem;
+  margin-top:2.2rem;
+  display:flex;flex-wrap:wrap;gap:.6rem 1.4rem;
 }
 .estado b{color:var(--paper);font-weight:600}
 .estado .pip{display:inline-block;width:.5rem;height:.5rem;border-radius:50%;margin-right:.45rem}
 
+/* Filtros: texto sin caja. El activo va en blanco y subrayado, para que no
+   dependa solo del color. El margen negativo alinea el texto con el logo. */
 .filtros{
-  display:flex;flex-wrap:wrap;gap:.4rem;
-  border-top:1px solid var(--rule);
-  padding:.85rem 0 1rem;
+  display:flex;flex-wrap:wrap;gap:.2rem;
+  margin:1.4rem 0 0 -.8rem;
 }
 .filtros button{
   font-family:var(--util);font-weight:600;
-  font-size:.76rem;letter-spacing:.14em;text-transform:uppercase;
-  color:var(--dim);background:none;border:1px solid var(--rule);
-  padding:.45rem .85rem;cursor:pointer;
-  transition:color .15s,border-color .15s;
+  font-size:.72rem;letter-spacing:.1em;text-transform:uppercase;
+  color:var(--dim);background:none;border:0;border-radius:9999px;
+  padding:.5rem .8rem;cursor:pointer;
+  transition:color .15s;
 }
 .filtros button:hover{color:var(--paper)}
-.filtros button[aria-pressed="true"]{color:var(--ink);background:var(--paper);border-color:var(--paper)}
+.filtros button[aria-pressed="true"]{
+  color:var(--paper);
+  text-decoration:underline;text-decoration-thickness:1px;text-underline-offset:.55rem;
+}
 
 .busqueda{margin-left:auto;display:flex;align-items:center;gap:.5rem}
 .busqueda input{
   font-family:var(--util);font-weight:500;
-  font-size:.82rem;letter-spacing:.06em;
+  font-size:.8rem;letter-spacing:.04em;
   color:var(--paper);background:none;
   border:0;border-bottom:1px solid var(--rule);
   padding:.4rem .1rem;width:11rem;
 }
-.busqueda input::placeholder{color:var(--dim);text-transform:uppercase;letter-spacing:.14em;font-size:.74rem}
-.busqueda input:focus{outline:none;border-bottom-color:var(--politica)}
+.busqueda input::placeholder{color:var(--dim);text-transform:uppercase;letter-spacing:.1em;font-size:.7rem}
+.busqueda input:focus{outline:none;border-bottom-color:var(--iris)}
 
 /* ---------- LISTA ---------- */
 main{max-width:var(--max);margin:0 auto;padding:0 1.5rem}
@@ -142,15 +146,11 @@ main{max-width:var(--max);margin:0 auto;padding:0 1.5rem}
 .post[data-cat="govtech"]{--c:var(--govtech)}
 
 .post{
-  border-bottom:1px solid var(--rule);
-  padding:2.2rem 0 2.4rem;
-  border-left:2px solid transparent;
-  transition:border-color .15s,padding-left .15s;
+  padding:clamp(2.5rem,6vw,3.75rem) 0;
   display:grid;
   grid-template-columns:1fr 64px;
   column-gap:2rem;
 }
-.post:hover{border-left-color:var(--c);padding-left:1.1rem}
 
 /* Sello: iris único generado a partir del id de la nota */
 .sello{grid-column:2;grid-row:1 / span 4;align-self:start;color:var(--c);opacity:.85}
@@ -159,18 +159,18 @@ main{max-width:var(--max);margin:0 auto;padding:0 1.5rem}
 .post-meta{
   grid-column:1;
   font-family:var(--util);font-weight:600;
-  font-size:.72rem;letter-spacing:.15em;text-transform:uppercase;
+  font-size:.7rem;letter-spacing:.12em;text-transform:uppercase;
   color:var(--dim);
   display:flex;flex-wrap:wrap;gap:1rem;
-  margin-bottom:.85rem;
+  margin-bottom:1rem;
 }
 .post-meta .cat{color:var(--c)}
 
 .post h2{
   grid-column:1;
-  font-family:var(--display);font-weight:800;
-  letter-spacing:-.032em;line-height:1.04;
-  font-size:clamp(1.65rem,4.2vw,2.5rem);
+  font-family:var(--display);font-weight:400;
+  letter-spacing:-.035em;line-height:1.1;
+  font-size:clamp(1.8rem,4.6vw,3rem);
   margin:0;
 }
 .post h2 button{
@@ -179,35 +179,44 @@ main{max-width:var(--max);margin:0 auto;padding:0 1.5rem}
 }
 .post h2 button:hover{color:var(--c)}
 
-.bajada{grid-column:1;color:var(--dim);margin:.85rem 0 0;max-width:42rem}
+.bajada{
+  grid-column:1;margin:1.1rem 0 0;max-width:42rem;
+  font-family:var(--display);font-weight:300;
+  font-size:1.05rem;line-height:1.6;color:var(--mist);
+}
 .leer{
   grid-column:1;justify-self:start;
   font-family:var(--util);font-weight:600;
-  font-size:.74rem;letter-spacing:.15em;text-transform:uppercase;
-  color:var(--c);background:none;border:0;padding:0;margin-top:1.2rem;cursor:pointer;
+  font-size:.72rem;letter-spacing:.1em;text-transform:uppercase;
+  color:var(--c);background:none;border:0;padding:0;margin-top:1.4rem;cursor:pointer;
 }
 .leer:hover{text-decoration:underline}
 
-.post.destacado h2{font-size:clamp(2.1rem,7vw,3.5rem)}
-.post.destacado .bajada{font-size:1.3rem;color:var(--paper)}
+.post.destacado h2{font-size:clamp(2.2rem,7vw,4.2rem);letter-spacing:-.04em;line-height:1.05}
+.post.destacado .bajada{font-size:1.2rem;color:var(--paper)}
 .post.destacado{grid-template-columns:1fr 96px}
+/* La única acción principal de la vista: píldora violeta, en la nota destacada. */
+.post.destacado .leer{
+  color:var(--paper);background:var(--iris);border-radius:9999px;
+  padding:.9rem 1.4rem;margin-top:2rem;
+  font-size:.78rem;letter-spacing:.06em;
+  transition:background .15s;
+}
+.post.destacado .leer:hover{text-decoration:none;background:#9470ff}
 
 /* ---------- LECTURA ---------- */
-.cuerpo{display:none;grid-column:1}
+.cuerpo{display:none;grid-column:1;color:var(--lectura)}
 
-body.leyendo .post{display:none;border-left-color:transparent;padding-left:0}
-body.leyendo .post.abierto{display:grid;border-bottom:0;padding-top:1.2rem}
+body.leyendo .post{display:none}
+body.leyendo .post.abierto{display:grid;padding-top:1.2rem}
 body.leyendo .filtros,body.leyendo .estado{display:none}
 body.leyendo .post.abierto .leer{display:none}
 body.leyendo .post.abierto .cuerpo{display:block}
 
-.post.abierto .cuerpo{
-  max-width:37rem;margin-top:2.2rem;
-  border-top:1px solid var(--rule);padding-top:2.2rem;
-}
+.post.abierto .cuerpo{max-width:37rem;margin-top:2.8rem}
 .cuerpo p{margin:0 0 1.5rem}
 .cuerpo h3{
-  font-family:var(--display);font-weight:700;letter-spacing:-.02em;
+  font-family:var(--display);font-weight:500;letter-spacing:-.02em;
   font-size:1.3rem;margin:2.6rem 0 .8rem;
 }
 .cuerpo blockquote{
@@ -217,18 +226,18 @@ body.leyendo .post.abierto .cuerpo{display:block}
 .cuerpo a{color:var(--c);text-underline-offset:3px}
 .cuerpo ul,.cuerpo ol{padding-left:1.3rem;margin:0 0 1.5rem}
 .cuerpo li{margin-bottom:.5rem}
-.cuerpo img{width:100%;height:auto;display:block;margin:2.2rem 0 .6rem}
+.cuerpo img{width:100%;height:auto;display:block;margin:2.2rem 0 .6rem;border-radius:24px}
 .cuerpo figure{margin:2.2rem 0}
 .cuerpo figure img{margin:0}
 .cuerpo figcaption{
-  font-family:var(--util);font-size:.74rem;letter-spacing:.1em;
+  font-family:var(--util);font-size:.7rem;letter-spacing:.08em;
   text-transform:uppercase;color:var(--dim);margin-top:.6rem;
 }
 
 .volver{
   display:none;
   font-family:var(--util);font-weight:600;
-  font-size:.76rem;letter-spacing:.15em;text-transform:uppercase;
+  font-size:.72rem;letter-spacing:.1em;text-transform:uppercase;
   color:var(--dim);background:none;border:0;padding:1.8rem 0 0;cursor:pointer;
 }
 body.leyendo .volver{display:block}
@@ -241,10 +250,9 @@ body.leyendo .volver{display:block}
   display:none;
   align-items:baseline;justify-content:space-between;gap:1rem;
   font-family:var(--util);font-weight:600;
-  font-size:.74rem;letter-spacing:.16em;text-transform:uppercase;
+  font-size:.7rem;letter-spacing:.12em;text-transform:uppercase;
   color:var(--dim);
-  border-bottom:1px solid var(--rule);
-  margin-top:3.2rem;padding-bottom:.7rem;
+  margin-top:5rem;padding-bottom:1.2rem;
 }
 main.modo-archivo .divisor{display:flex}
 
@@ -253,10 +261,8 @@ main.modo-archivo .divisor{display:flex}
   grid-template-columns:1fr auto;
   align-items:baseline;
   column-gap:1.5rem;
-  padding:.8rem 0;
-  border-left-width:0;
+  padding:.9rem 0;
 }
-.post.en-archivo:hover{padding-left:0}
 .post.en-archivo:hover h2 button{color:var(--c)}
 .post.en-archivo .sello,
 .post.en-archivo .bajada,
@@ -264,7 +270,7 @@ main.modo-archivo .divisor{display:flex}
 .post.en-archivo .tiempo{display:none}
 .post.en-archivo h2{
   grid-column:1;grid-row:1;
-  font-size:1.05rem;font-weight:600;letter-spacing:-.005em;line-height:1.35;
+  font-size:1.05rem;font-weight:500;letter-spacing:-.01em;line-height:1.35;
 }
 .post.en-archivo .post-meta{
   grid-column:2;grid-row:1;
@@ -273,7 +279,7 @@ main.modo-archivo .divisor{display:flex}
 
 .vacio{
   display:none;
-  font-family:var(--util);font-size:.8rem;letter-spacing:.12em;
+  font-family:var(--util);font-size:.76rem;letter-spacing:.1em;
   text-transform:uppercase;color:var(--dim);padding:3rem 0;
 }
 main.sin-resultados .vacio{display:block}
@@ -281,11 +287,11 @@ main.sin-resultados .divisor{display:none}
 body.leyendo .vacio{display:none!important}
 
 /* ---------- PIE ---------- */
-footer{border-top:1px solid var(--rule);margin-top:4rem;padding:2rem 1.5rem 3rem}
+footer{margin-top:5rem;padding:2rem 1.5rem 3.5rem}
 .footer-in{
   max-width:var(--max);margin:0 auto;
   font-family:var(--util);font-weight:600;
-  font-size:.74rem;letter-spacing:.13em;text-transform:uppercase;color:var(--dim);
+  font-size:.7rem;letter-spacing:.1em;text-transform:uppercase;color:var(--dim);
   display:flex;flex-wrap:wrap;gap:1.2rem;justify-content:space-between;
 }
 .footer-in a:hover{color:var(--paper)}
@@ -294,7 +300,6 @@ footer{border-top:1px solid var(--rule);margin-top:4rem;padding:2rem 1.5rem 3rem
 @media (max-width:640px){
   .post,.post.destacado{grid-template-columns:1fr;column-gap:0}
   .sello{grid-column:1;grid-row:auto;width:48px;margin-bottom:1.1rem}
-  .post:hover{padding-left:0}
   body{font-size:1.08rem}
 }
 </style>
