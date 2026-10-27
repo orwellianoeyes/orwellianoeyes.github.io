@@ -82,8 +82,8 @@ cualquier lugar de esa zona y cambiás cuatro cosas.
 | Identificador | `id` | Texto corto, sin espacios ni acentos ni mayúsculas |
 | Contenido | `<h2>`, `.bajada`, `.cuerpo` | Título, copete y cuerpo |
 
-El `<span class="cat">` de la primera línea es el nombre visible de la
-categoría. Ponelo con acento y mayúscula: `Tecnología`, `Política`, `Govtech`.
+El nombre visible de la categoría (`Tecnología`, `Política`, `Govtech`) sale
+solo de `data-cat`. El `<span class="cat">` del artículo ya no se muestra.
 
 ### Lo que se genera solo
 
@@ -91,10 +91,9 @@ No lo escribas, se calcula al cargar la página:
 
 - La fecha en formato legible (`14 ago 2026`).
 - El tiempo de lectura, estimado en 200 palabras por minuto.
-- El iris de la derecha, único para cada `id`.
+- El iris que acompaña a cada nota en la lista, único para cada `id`.
 - El orden de las notas, de la más nueva a la más vieja.
-- Los contadores por categoría de la barra superior.
-- El corte del archivo.
+- Los contadores por categoría de la pantalla de inicio.
 
 ### El orden no importa
 
@@ -105,10 +104,17 @@ Si dos notas comparten fecha, se ordenan como estén escritas en el archivo.
 
 Una nota con `id="expediente-digital"` es accesible en
 `https://tuusuario.github.io/#expediente-digital`. Ese link se puede compartir y
-abre directo en esa nota.
+abre directo en esa nota. Las listas también tienen su link: `#t/tecnologia`,
+`#t/politica`, `#t/govtech` y `#t/todo`.
 
 **No cambies el `id` de una nota ya publicada.** Si lo cambiás, todos los links
 que compartiste dejan de funcionar.
+
+### Qué lee la página de cada artículo
+
+Solo `data-cat`, `data-fecha`, `id`, el `<h2>`, la `.bajada` y el `.cuerpo`. El
+resto (`.post-meta`, el botón `Leer nota`) queda sin uso, pero no hace falta
+borrarlo de las notas que ya están.
 
 ### Formato dentro del cuerpo
 
@@ -157,42 +163,64 @@ Google usa para entender la imagen. Describí qué se ve, no repitas el epígraf
 No hay servidor ni base de datos. Las notas son texto dentro de `index.html`.
 Nada expira, nada se borra, nada se cae. Tu respaldo es una copia del archivo.
 
-### Portada y archivo
+Las notas viven en `<main id="lista" hidden>`: ese bloque queda oculto y la
+página lo lee para armar las pantallas. Sin JavaScript no se ve ninguna nota.
 
-Las **10 notas más nuevas** se muestran completas. A partir de la 11, pasan
-automáticamente a un índice compacto de una línea, bajo el título `ARCHIVO`. Es
-la misma nota, mostrada de otra forma: se abre igual con un clic.
+### Las tres pantallas
 
-Para cambiar ese corte, buscá en el JavaScript:
+El ojo es la navegación del blog. Hay tres pantallas, y la dirección (lo que
+va después del `#`) dice cuál se ve:
 
-```js
-var LIMITE_PORTADA = 10;
-```
+- **Inicio** (`#`): el ojo grande al centro y debajo las opciones: Tecnología,
+  Política, Govtech y Todo, cada una con su cantidad de notas. Pasar el mouse
+  por una opción tiñe el ojo de su color y lo hace mirarla.
+- **Lista** (`#t/tecnologia`, `#t/politica`, `#t/govtech`, `#t/todo`): el ojo
+  se corre a la izquierda y las notas de ese tipo entran de una en una desde la
+  derecha. Arriba hay pestañas para cambiar de tipo sin volver al inicio.
+- **Nota** (`#id-de-la-nota`): la página baja y la nota se lee con el ojo fijo
+  al costado, mirando el texto según cuánto se avanzó. En celular el ojo queda
+  arriba.
+
+Cada tipo muestra todas sus notas: ya no hay portada con corte ni archivo.
+`Escape` vuelve un paso atrás y el botón atrás del navegador también.
 
 ### Buscador
 
 Filtra mientras se escribe, sobre el título, la bajada y el cuerpo completo.
-Ignora acentos y mayúsculas. Como todo el contenido ya está en la página, la
-búsqueda es instantánea y no consulta ningún servidor.
+Ignora acentos y mayúsculas. Escribir desde el inicio o desde una nota lleva a
+`Todo` con los resultados; dentro de una lista, filtra esa lista. Como todo el
+contenido ya está en la página, la búsqueda es instantánea y no consulta
+ningún servidor.
 
-Cuando hay una búsqueda o un filtro activo, el archivo se desarma y todas las
-coincidencias se muestran como fichas completas.
+### El ojo
 
-### Los dos ojos
+Está hecho con unos 1700 triángulos diminutos dibujados en un `<canvas>` que
+ocupa toda la ventana, más unos 150 triángulos sueltos de fondo. El ojo se
+dibuja donde esté el recuadro `#ojo` de la página: al cambiar de pantalla, el
+recuadro cambia de lugar y de tamaño, y los triángulos fluyen hasta el nuevo
+lugar, cada uno con su propio resorte.
 
-- **El chico, rojo, arriba:** la marca del blog. Su pupila sigue al cursor.
-- **El grande, detrás del nombre:** marca de agua al 7% de opacidad, con la
-  pupila siguiendo al cursor a la mitad de recorrido, lo que da profundidad.
+- **Mirada:** sigue al cursor con inercia, parpadea de vez en cuando y, sin
+  cursor (celular), recorre la escena sola.
+- **Cursor:** los triángulos cercanos se apartan al pasar el mouse.
+- **Color:** el de la categoría que se mira. En `Todo` y en el inicio, mezcla
+  los cuatro.
+- **Equipo lento:** si los cuadros tardan demasiado, el ojo reduce solo la
+  cantidad de triángulos.
+- **Movimiento reducido:** si el sistema del lector lo pide, el ojo se dibuja
+  quieto.
 
-Ambos se desactivan solos en pantallas táctiles y si el sistema del lector tiene
-activada la reducción de movimiento.
-
-Para ajustarlos, en el CSS:
+Para ajustarlo, en el CSS (tamaño en cada pantalla):
 
 ```css
-.ojo { width: clamp(90px, 15vw, 168px); }   /* el ojo chico */
-.ojo-fondo { opacity: .07; }                /* la marca de agua */
+body[data-vista="inicio"] .ojo-slot { width: min(640px, 52vw, 78vh); }   /* inicio */
+body:not([data-vista="inicio"]) .ojo-slot { max-width: 540px; }          /* lista */
+body[data-vista="nota"] .ojo-slot { max-width: 380px; }                  /* nota */
 ```
+
+Y en el último `<script>` (el del ojo): `K` (rigidez del resorte), `R_MOUSE` y
+`F_MOUSE` (alcance y fuerza con que el cursor aparta los triángulos) y `ADITIVO`
+(si es `true`, donde se juntan brillan más).
 
 ### Colores
 
@@ -200,53 +228,65 @@ Están todos declarados juntos al principio del CSS, en `:root`. Cambiar uno
 cambia todos los lugares donde se usa.
 
 ```css
---ink:        #060606;   /* fondo */
---paper:      #E3E3E3;   /* texto */
---dim:        #8A8A8A;   /* texto secundario */
+--ink:        #000000;   /* fondo */
+--paper:      #ffffff;   /* texto y títulos */
+--dim:        #9a9a9a;   /* texto secundario */
+--mist:       #bdbdbd;   /* bajadas */
+--lectura:    #ededed;   /* cuerpo de las notas */
+--iris:       #8052ff;   /* violeta de la marca */
 --tecnologia: #FFC738;   /* amarillo */
 --politica:   #FF634B;   /* naranja rojizo */
 --govtech:    #6CAA6D;   /* verde */
 ```
 
+Los colores de las tres categorías y el violeta también están copiados, en
+RGB, en la lista `BASE` del script del ojo. Si los cambiás en `:root`, cambialos
+ahí también.
+
 ### Tipografías
 
-**Archivo** para títulos (Omnibus-Type, Buenos Aires) y **Newsreader** para el
-cuerpo. Se cargan desde Google Fonts: es la única cosa que la página descarga
-desde afuera. Son los sustitutos libres de GT America y Martina Plantijn, las
-fuentes de pago que usa la página que sirvió de referencia.
+**Inter** para títulos, menú y etiquetas, y **Newsreader** (con serif) para el
+cuerpo de las notas, donde se lee mejor un texto largo. Se cargan desde Google
+Fonts: es la única cosa que la página descarga desde afuera.
+
+El estilo visual parte del sistema "Dala" de [Refero Styles](https://styles.refero.design):
+negro puro, títulos grandes en peso 400, sin bordes ni tarjetas, y un solo
+violeta para la acción principal. Se mantuvieron los colores por categoría.
 
 ### Peso
 
-El archivo pesa unos 25 KB. Cada nota suma entre 3 y 5 KB. Con cincuenta notas
-seguís por debajo de los 250 KB: menos que una sola foto de celular.
+Con 10 notas el archivo pesa unos 120 KB. Cada nota suma entre 4 y 15 KB (unos
+8 KB de promedio). Con cincuenta notas rondás los 450 KB: sigue siendo menos que
+una sola foto de celular.
 
 ---
 
 ## 4. Recomendaciones
 
-### Ahora, antes de publicar
+### Antes de publicar (ya hecho)
 
-- **Borrá los tres artículos de ejemplo.** Están marcados con
-  `▼▼▼ EJEMPLO — borralo ▼▼▼`.
-- **Cambiá el correo del pie.** Dice `tucorreo@ejemplo.com`.
-- **Revisá la descripción del sitio.** La etiqueta `<meta name="description">`
-  del encabezado es el texto que aparece en Google y en las vistas previas de
-  WhatsApp.
+- **Artículos de ejemplo:** ya se borraron todos.
+- **Contacto del pie:** ya no hay correo de ejemplo; el pie enlaza a
+  [@orwelliano90](https://x.com/orwelliano90) en X.
+- **Descripción del sitio:** la etiqueta `<meta name="description">` del
+  encabezado ya está escrita, junto con las etiquetas Open Graph y Twitter Card
+  que definen la vista previa al compartir (`imagenes/Eye_Illustration.jpg`).
+  Si cambia el enfoque del blog, actualizá esos textos.
 
 ### Sobre la escritura
 
-- **La bajada hace casi todo el trabajo.** En la portada, el lector ve título y
+- **La bajada hace casi todo el trabajo.** En la lista de cada tipo, el lector ve título y
   bajada. Si la bajada resume la nota en lugar de dar una razón para entrar, no
   entra. Que sea una afirmación, no un anuncio.
 - **Publicá con ritmo irregular sin culpa.** La página está diseñada para eso:
-  la barra de estado muestra el volumen real por categoría y nunca queda una
-  sección vacía a la vista.
+  el inicio muestra el volumen real por categoría, sin esconder ninguna.
 - **Una nota corta publicada le gana a una larga sin terminar.** El formato
   aguanta perfectamente notas de 400 palabras.
 
 ### Sobre la escala
 
-- **Hasta 50 notas:** así como está, sin cambios.
+- **Hasta 50 notas:** así como está, sin cambios. Cada lista muestra todas las
+  notas de su tipo, sin corte, así que con muchas se hace larga.
 - **A partir de ahí:** el problema no va a ser la velocidad sino tu comodidad
   editando un archivo de miles de líneas. Ese es el momento de migrar a un
   generador estático (Astro o Eleventy), con una nota por archivo en Markdown.
@@ -267,7 +307,13 @@ En orden de utilidad, si el blog agarra ritmo:
    Analytics: pesa y rastrea. Alternativas como GoatCounter no hacen ninguna de
    las dos cosas.
 
-### Dos advertencias
+### Tres advertencias
+
+- **Las notas viven en un bloque oculto.** Google puede darle menos peso a
+  texto oculto, y el blog no muestra nada sin JavaScript. Conviene mirar cada
+  tanto en Google Search Console si las notas siguen apareciendo en las
+  búsquedas. Si dejan de aparecer, es el momento de pasar a un generador
+  estático (ver "Sobre la escala").
 
 - **Nunca pongas una clave de API dentro del HTML.** El archivo es público y
   cualquiera puede leerlo. Si en algún momento querés generar contenido con IA
