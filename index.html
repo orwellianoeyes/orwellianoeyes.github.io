@@ -59,39 +59,20 @@ a{color:inherit}
 :focus-visible{outline:2px solid var(--c);outline-offset:3px}
 
 /* ---------- CABECERA ---------- */
-.masthead{border-bottom:1px solid var(--rule);padding:2.2rem 1.5rem 0;overflow:hidden}
-.masthead-in{max-width:var(--max);margin:0 auto}
+.masthead{position:relative;border-bottom:1px solid var(--rule);padding:2.2rem 1.5rem 0;overflow:hidden}
+.masthead-in{position:relative;z-index:1;max-width:var(--max);margin:0 auto}
 
-/* Ojo grande detrás del nombre. Para hacerlo más o menos visible,
-   cambiá el valor de opacity (ahora .07). */
-.marca{position:relative}
-.ojo-fondo{
-  position:absolute;
-  top:50%;left:-5%;
-  transform:translateY(-50%);
-  width:clamp(340px,88vw,720px);
-  height:auto;
-  color:var(--paper);
-  opacity:.07;
-  pointer-events:none;
-  z-index:0;
-}
-.ojo-fondo *{fill:none;stroke:currentColor;stroke-width:1.2;vector-effect:non-scaling-stroke}
-.ojo-fondo .pupila-fondo{fill:currentColor;stroke:none}
-.marca .logo{position:relative;z-index:1}
+/* El ojo de partículas se dibuja en este canvas, detrás de la cabecera. */
+#lienzo{position:absolute;inset:0;width:100%;height:100%;z-index:0;pointer-events:none}
 
-/* Tamaño del ojo: mínimo en celular / proporcional / techo en pantallas grandes.
-   Si lo querés distinto, cambiá solo el tercer valor (168px). */
+/* Reserva el lugar del ojo sobre el nombre. En pantallas anchas es solo aire
+   arriba del logo (el ojo va a la derecha); en celular el ojo se dibuja acá. */
 .ojo{
   width:clamp(90px,15vw,168px);
-  height:auto;display:block;
-  color:var(--politica);
+  aspect-ratio:120/64;
   margin-bottom:1.3rem;
 }
-.ojo .lente{fill:none;stroke:currentColor;stroke-width:1.9}
-.ojo .iris{fill:none;stroke:currentColor;stroke-width:1.6}
-.ojo .pupila{fill:currentColor}
-.ojo .globo{fill:var(--ink)}
+@media (max-width:899px){.ojo{width:clamp(220px,78vw,360px)}}
 
 .logo{
   font-family:var(--display);
@@ -321,37 +302,13 @@ footer{border-top:1px solid var(--rule);margin-top:4rem;padding:2rem 1.5rem 3rem
 <body>
 
 <header class="masthead">
+  <canvas id="lienzo" aria-hidden="true"></canvas>
   <div class="masthead-in">
 
-    <!-- El ojo. La pupila sigue al cursor. -->
-    <svg class="ojo" id="ojo" viewBox="0 0 120 64" aria-hidden="true">
-      <defs>
-        <clipPath id="corte">
-          <path d="M3 32 C 26 5, 94 5, 117 32 C 94 59, 26 59, 3 32 Z"/>
-        </clipPath>
-      </defs>
-      <path class="globo" d="M3 32 C 26 5, 94 5, 117 32 C 94 59, 26 59, 3 32 Z"/>
-      <g clip-path="url(#corte)">
-        <g id="pupilaGrupo">
-          <circle class="iris" cx="60" cy="32" r="16"/>
-          <circle class="iris" cx="60" cy="32" r="10.5" stroke-dasharray="2 3"/>
-          <circle class="pupila" cx="60" cy="32" r="5.5"/>
-        </g>
-      </g>
-      <path class="lente" d="M3 32 C 26 5, 94 5, 117 32 C 94 59, 26 59, 3 32 Z"/>
-    </svg>
+    <!-- Lugar del ojo. El ojo en sí lo dibuja el canvas (ver el script del final). -->
+    <div class="ojo" id="ojo" aria-hidden="true"></div>
 
     <div class="marca">
-      <svg class="ojo-fondo" viewBox="0 0 120 64" aria-hidden="true">
-        <path d="M3 32 C 26 5, 94 5, 117 32 C 94 59, 26 59, 3 32 Z"/>
-        <path d="M14 32 C 32 14, 88 14, 106 32 C 88 50, 32 50, 14 32 Z" opacity=".55"/>
-        <circle cx="60" cy="32" r="21"/>
-        <g id="pupilaFondo">
-          <circle cx="60" cy="32" r="14"/>
-          <circle cx="60" cy="32" r="8" stroke-dasharray="3 4"/>
-          <circle class="pupila-fondo" cx="60" cy="32" r="3.4"/>
-        </g>
-      </svg>
       <h1 class="logo">Orwelliano<br>Eyes</h1>
     </div>
     <p class="tagline">Tecnología · Política · Govtech — Argentina</p>
@@ -1033,19 +990,427 @@ footer{border-top:1px solid var(--rule);margin-top:4rem;padding:2rem 1.5rem 3rem
     if (e.key==='Escape'){ cerrar(); if (location.hash) urlHacia(location.pathname); }
   });
 
-  /* La pupila sigue al cursor */
-  var grupo = document.getElementById('pupilaGrupo');
-  var fondo = document.getElementById('pupilaFondo');
-  var quieto = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-  if (grupo && !quieto && window.matchMedia('(hover: hover)').matches){
-    window.addEventListener('mousemove', function(e){
-      var r = document.getElementById('ojo').getBoundingClientRect();
-      var dx = Math.max(-1, Math.min(1, (e.clientX-(r.left+r.width/2))/320));
-      var dy = Math.max(-1, Math.min(1, (e.clientY-(r.top+r.height/2))/220));
-      grupo.setAttribute('transform','translate('+(dx*9).toFixed(1)+','+(dy*6).toFixed(1)+')');
-      if (fondo) fondo.setAttribute('transform','translate('+(dx*5).toFixed(1)+','+(dy*3.5).toFixed(1)+')');
-    }, {passive:true});
+})();
+</script>
+<script>
+/* Ojo de partículas — Orwelliano Eyes
+   Un canvas detrás de la cabecera: ~2000 triángulos forman el ojo, más
+   triángulos sueltos flotando. Reacciona al cursor, a los filtros y a la
+   apertura de una nota. */
+(function(){
+  'use strict';
+
+  var cab      = document.querySelector('.masthead');
+  var cv       = document.getElementById('lienzo');
+  var lista    = document.getElementById('lista');
+  var marcador = document.getElementById('ojo');   /* reserva el espacio del ojo en pantallas angostas */
+  if (!cab || !cv || !lista || !marcador || !cv.getContext) return;
+
+  var ctx    = cv.getContext('2d');
+  var quieto = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var hayMouse = matchMedia('(hover: hover)').matches;
+
+  var ADITIVO = true;   /* 'lighter': donde se juntan, brillan más */
+
+  /* Paleta: 0 violeta, 1 blanco, 2 tecnología, 3 política, 4 govtech */
+  var BASE = [[128,82,255],[255,255,255],[255,199,56],[255,99,75],[108,170,109]];
+  var CAT  = {tecnologia:2, politica:3, govtech:4};
+
+  /* Resorte que lleva cada triángulo a su lugar, y empuje del cursor */
+  var K = 55, AMORT = 7.5, R_MOUSE = 105, F_MOUSE = 2800;
+
+  function clamp(v,a,b){ return v<a ? a : (v>b ? b : v); }
+  function suave(u){ return u*u*(3-2*u); }
+  function copia(c){ return c.slice(); }
+  function mezcla(a,b,m){ return [a[0]+(b[0]-a[0])*m, a[1]+(b[1]-a[1])*m, a[2]+(b[2]-a[2])*m]; }
+  function semilla(a){
+    return function(){
+      a |= 0; a = a + 0x6D2B79F5 | 0;
+      var t = Math.imul(a ^ a>>>15, 1 | a);
+      t = t + Math.imul(t ^ t>>>7, 61 | t) ^ t;
+      return ((t ^ t>>>14) >>> 0) / 4294967296;
+    };
   }
+
+  /* ---------- Geometría del ojo (mismo dibujo que el SVG, caja de 120 x 64) ---------- */
+  var C1 = [[3,32],[26,5],[94,5],[117,32]];
+  var C2 = [[117,32],[94,59],[26,59],[3,32]];
+  var I1 = [[14,32],[32,14],[88,14],[106,32]];
+  var I2 = [[106,32],[88,50],[32,50],[14,32]];
+
+  function bez(c,t){
+    var u = 1-t;
+    return [
+      u*u*u*c[0][0] + 3*u*u*t*c[1][0] + 3*u*t*t*c[2][0] + t*t*t*c[3][0],
+      u*u*u*c[0][1] + 3*u*u*t*c[1][1] + 3*u*t*t*c[2][1] + t*t*t*c[3][1]
+    ];
+  }
+  /* n puntos a igual distancia a lo largo de las curvas */
+  function muestrear(curvas, n){
+    var d = [], ac = [0], i, k;
+    curvas.forEach(function(c){ for (k=0;k<=200;k++) d.push(bez(c,k/200)); });
+    for (i=1;i<d.length;i++) ac.push(ac[i-1] + Math.hypot(d[i][0]-d[i-1][0], d[i][1]-d[i-1][1]));
+    var tot = ac[ac.length-1], out = [], j = 1;
+    for (i=0;i<n;i++){
+      var m = tot*i/n;
+      while (j < ac.length-1 && ac[j] < m) j++;
+      out.push(d[j]);
+    }
+    return out;
+  }
+  /* Medio alto del párpado en cada x: sirve para recortar el iris */
+  var mitad = new Float32Array(241);
+  (function(){
+    for (var k=0;k<=600;k++){
+      var q = bez(C1,k/600), ix = Math.round(q[0]*2);
+      if (ix>=0 && ix<=240) mitad[ix] = Math.max(mitad[ix], 32-q[1]);
+    }
+    for (var i=8;i<233;i++) if (!mitad[i]) mitad[i] = mitad[i-1];
+  })();
+  function alto(x){ var i = Math.round(x*2); return (i<0 || i>240) ? 0 : mitad[i]; }
+
+  /* ---------- Estado ---------- */
+  var W=0, H=0, dpr=1, eyeW=400, cx=0, cy=0, S=3.3, kk=1, DISP=400, RM=105, RM2=11025, D=0;
+  var P=[], AMB=[], lim=0;
+  var sc = quieto ? 0 : 1;              /* 1 = disperso, 0 = armado */
+  var gx=0, gy=0, tx=0, ty=0, proxMirada=0;
+  var b0=-9, b1=-9, proxParp=3, blink=0;
+  var cur = BASE.map(copia), desde = BASE.map(copia), hasta = BASE.map(copia), tw = 1;
+  var modo = lista.dataset.filtro || 'todo';
+  var mx=-1e4, my=-1e4, mouseOn=false, tMouse=0;
+  var raf=0, tPrev=0, t0=0, visible=true, ema=.016, cuenta=0;
+  var bk = []; for (var q=0;q<20;q++) bk.push([]);
+  var HX=0, HY=0, CF=1;
+
+  /* ---------- Partículas ---------- */
+  function crear(dens){
+    var r = semilla(11);
+    P = [];
+    function pal(w){ var x = r(), a = 0; for (var i=0;i<5;i++){ a += w[i]; if (x < a) return i; } return 0; }
+    var W_BORDE = [.50,.20,.10,.10,.10],
+        W_MIRA  = [.30,.40,.10,.10,.10],
+        W_PUPI  = [.50,.50,0,0,0],
+        W_TODO  = [.36,.20,.15,.15,.14];
+    /* tipo 0 = borde, 1 = mirada (se mueve con el cursor), 2 = relleno */
+    function add(tipo,bx,by,a,z,w){
+      var ang = Math.atan2(by-32, bx-60) + (r()-.5)*1.4;
+      P.push({t:tipo, bx:bx, by:by, x:0, y:0, vx:0, vy:0, a:a, z:z, c:pal(w),
+              th:r()*6.283, sp:(r()-.5)*1.2, f1:r()*6.283, f2:r()*6.283, d:r(),
+              ex:Math.cos(ang), ey:Math.sin(ang), R:.6+r()*.9});
+    }
+    muestrear([C1,C2], Math.round(340*dens)).forEach(function(p){ add(0,p[0],p[1], .55+r()*.45, 2.0+r()*1.6, W_BORDE); });
+    muestrear([I1,I2], Math.round(200*dens)).forEach(function(p){ add(0,p[0],p[1], .30+r()*.30, 1.6+r()*1.2, W_BORDE); });
+
+    function anillo(rad, n, salto){
+      for (var i=0;i<n;i++){
+        if (salto && (i % salto) < 2) continue;
+        var a = i/n*6.2832 + (r()-.5)*.05;
+        add(1, 60+Math.cos(a)*rad, 32+Math.sin(a)*rad, .6+r()*.4, 1.8+r()*1.4, W_MIRA);
+      }
+    }
+    anillo(15, Math.round(120*dens));
+    anillo(10, Math.round(90*dens), 6);
+
+    for (var j=0;j<14;j++){                       /* rayos del iris */
+      var a = j/14*6.2832;
+      for (var m=0;m<6;m++){
+        var rr = 6.5 + m*1.7;
+        add(1, 60+Math.cos(a)*rr, 32+Math.sin(a)*rr, .35+r()*.25, 1.3+r()*.9, W_MIRA);
+      }
+    }
+    var np = Math.round(130*dens);                /* pupila: disco relleno */
+    for (var i=0;i<np;i++){
+      var rp = 5.2*Math.sqrt((i+.5)/np), ap = i*2.39996;
+      add(1, 60+Math.cos(ap)*rp, 32+Math.sin(ap)*rp, .7+r()*.3, 1.8+r()*.9, W_PUPI);
+    }
+    var nr = Math.round(230*dens), g = 0;         /* relleno disperso dentro del párpado */
+    while (g < nr){
+      var x = 6 + r()*108, h = alto(x)*.92, y = 32 + (r()*2-1)*h;
+      if (h < 2) continue;
+      add(2, x, y, .25+r()*.40, 1.4+r()*1.4, W_TODO);
+      g++;
+    }
+    for (var s=P.length-1; s>0; s--){             /* mezcla: si hace falta aligerar, se quita parejo */
+      var k = Math.floor(r()*(s+1)), tmp = P[s]; P[s] = P[k]; P[k] = tmp;
+    }
+  }
+
+  function ambiente(n){
+    AMB = [];
+    var w = [.36,.20,.15,.15,.14];
+    for (var i=0;i<n;i++){
+      var x = Math.random(), c = 0, a = 0;
+      for (var k=0;k<5;k++){ a += w[k]; if (x < a){ c = k; break; } }
+      var vel = 5 + Math.random()*14, ang = Math.random()*6.283;
+      AMB.push({t:3, x:Math.random()*W, y:Math.random()*H, vx:0, vy:0,
+                bx:Math.cos(ang)*vel, by:Math.sin(ang)*vel - 3,
+                a:.14+Math.random()*.34, z:2.4+Math.random()*3, c:c,
+                th:Math.random()*6.283, sp:(Math.random()-.5)*.8, f1:Math.random()*6.283});
+      AMB[i].vx = AMB[i].bx; AMB[i].vy = AMB[i].by;
+    }
+  }
+
+  /* Dónde quiere estar cada triángulo del ojo ahora mismo */
+  function casa(p, t, s, resp){
+    var bx = p.bx, by = p.by, cf = 1;
+    if (p.t === 1){
+      bx += gx*11; by += gy*5;
+      cf = clamp((alto(bx) - Math.abs(by-32)) / 3, 0, 1);   /* el párpado recorta el iris */
+    }
+    by = 32 + (by-32)*(1 - .93*blink);
+    HX = cx + (bx-60)*S*resp + Math.sin(t*.9+p.f1)*1.5*kk + p.ex*s*DISP*p.R;
+    HY = cy + (by-32)*S*resp + Math.cos(t*.8+p.f2)*1.5*kk + p.ey*s*DISP*p.R;
+    CF = cf;
+  }
+
+  function colocar(){
+    var resp = 1;
+    for (var i=0;i<P.length;i++){
+      var p = P[i], u = suave(clamp((sc - p.d*.35)/.65, 0, 1));
+      casa(p, 0, u, resp);
+      p.x = HX; p.y = HY; p.vx = 0; p.vy = 0;
+    }
+  }
+
+  function encolar(p, a){
+    if (a < .12) return;
+    var l = clamp(Math.round(a*4) - 1, 0, 3);
+    bk[p.c*4 + l].push(p);
+  }
+
+  function dibujar(t){
+    ctx.globalCompositeOperation = 'source-over';
+    ctx.clearRect(0, 0, W, H);
+    if (ADITIVO) ctx.globalCompositeOperation = 'lighter';
+    ctx.lineWidth = 1;
+    ctx.lineJoin = 'miter';
+    for (var c=0;c<5;c++){
+      ctx.strokeStyle = 'rgb('+(cur[c][0]|0)+','+(cur[c][1]|0)+','+(cur[c][2]|0)+')';
+      for (var l=0;l<4;l++){
+        var arr = bk[c*4+l];
+        if (!arr.length) continue;
+        ctx.globalAlpha = (l+1)/4;
+        ctx.beginPath();
+        for (var j=0;j<arr.length;j++){
+          var p = arr[j], a = p.th + t*p.sp, r = p.z*kk, x = p.x, y = p.y;
+          ctx.moveTo(x + r*Math.cos(a), y + r*Math.sin(a));
+          ctx.lineTo(x + r*Math.cos(a+2.0944), y + r*Math.sin(a+2.0944));
+          ctx.lineTo(x + r*Math.cos(a+4.1888), y + r*Math.sin(a+4.1888));
+          ctx.closePath();
+        }
+        ctx.stroke();
+      }
+    }
+    ctx.globalAlpha = 1;
+  }
+
+  /* Un cuadro de simulación + dibujo. fijo = sin física (movimiento reducido) */
+  function paso(t, dt, fijo){
+    var i, p, n = lim;
+    for (i=0;i<20;i++) bk[i].length = 0;
+    var resp = 1 + .012*Math.sin(t*.8);
+
+    for (i=0;i<n;i++){
+      p = P[i];
+      var u = suave(clamp((sc - p.d*.35)/.65, 0, 1));
+      casa(p, t, u, resp);
+      if (fijo){ p.x = HX; p.y = HY; }
+      else {
+        var ax = (HX-p.x)*K - p.vx*AMORT, ay = (HY-p.y)*K - p.vy*AMORT;
+        if (mouseOn){
+          var dx = p.x-mx, dy = p.y-my, d2 = dx*dx + dy*dy;
+          if (d2 < RM2){
+            var d = Math.sqrt(d2) || 1, f = 1 - d/RM; f = f*f*F_MOUSE*kk;
+            ax += dx/d*f; ay += dy/d*f;
+          }
+        }
+        p.vx += ax*dt; p.vy += ay*dt;
+        p.x += p.vx*dt; p.y += p.vy*dt;
+      }
+      var a = p.a * CF * (1-u);
+      if (p.t === 2) a *= .7 + .3*Math.sin(t*1.7 + p.f1*3);
+      encolar(p, a);
+    }
+
+    for (i=0;i<AMB.length;i++){
+      p = AMB[i];
+      if (!fijo){
+        p.vx += (p.bx-p.vx)*dt*1.2;
+        p.vy += (p.by-p.vy)*dt*1.2;
+        if (mouseOn){
+          var ex = p.x-mx, ey = p.y-my, e2 = ex*ex + ey*ey;
+          if (e2 < RM2*1.6){
+            var e = Math.sqrt(e2) || 1, g = 1 - e/(RM*1.27);
+            if (g > 0){ g = g*g*260; p.vx += ex/e*g*dt*8; p.vy += ey/e*g*dt*8; }
+          }
+        }
+        p.x += p.vx*dt; p.y += p.vy*dt;
+        if (p.x < -12) p.x = W+12; else if (p.x > W+12) p.x = -12;
+        if (p.y < -12) p.y = H+12; else if (p.y > H+12) p.y = -12;
+      }
+      encolar(p, p.a * (1-sc) * (.65 + .35*Math.sin(t*1.3 + p.f1)));
+    }
+    dibujar(t);
+  }
+
+  /* ---------- Bucle ---------- */
+  function activo(){ return visible && !document.hidden; }
+
+  function cuadro(ts){
+    raf = 0;
+    if (!activo()) return;
+    var t = ts/1000, crudo = t - tPrev;
+    var dt = clamp(crudo, .001, .033);
+    tPrev = t;
+    if (!t0) t0 = t;
+
+    var leyendo = document.body.classList.contains('leyendo');
+    var meta = (leyendo || t - t0 < .35) ? 1 : 0;
+    sc += (meta - sc) * (1 - Math.exp(-dt*(meta ? 2.4 : 1.5)));
+    if (Math.abs(meta - sc) < .004) sc = meta;
+
+    /* Mirada: sigue al cursor con inercia; sin cursor, recorre la escena */
+    var ahora = performance.now()/1000;
+    if (mouseOn && ahora - tMouse < 4){
+      tx = clamp((mx-cx)/(W*.45), -1, 1);
+      ty = clamp((my-cy)/(H*.5), -1, 1);
+    } else if (t > proxMirada){
+      tx = Math.random()*1.6 - .8;
+      ty = Math.random()*1.0 - .5;
+      proxMirada = t + 1.2 + Math.random()*2.2;
+    }
+    var ka = 1 - Math.exp(-dt*6);
+    gx += (tx-gx)*ka; gy += (ty-gy)*ka;
+
+    /* Parpadeo, a veces doble */
+    if (t > proxParp){
+      b0 = t; b1 = Math.random() < .3 ? t + .34 : -9;
+      proxParp = t + 3.5 + Math.random()*5;
+    }
+    var u0 = (t-b0)/.24, u1 = (t-b1)/.24;
+    blink = Math.max((u0>0 && u0<1) ? Math.sin(Math.PI*u0) : 0, (u1>0 && u1<1) ? Math.sin(Math.PI*u1) : 0);
+
+    /* Cambio de color al filtrar */
+    if (tw < 1){
+      tw = Math.min(1, tw + dt/.9);
+      var e = suave(tw);
+      for (var c=0;c<5;c++) for (var m=0;m<3;m++) cur[c][m] = desde[c][m] + (hasta[c][m]-desde[c][m])*e;
+    }
+
+    paso(t, dt, false);
+
+    /* Si el equipo no da, se aligera la cantidad de triángulos */
+    /* Solo cuenta si el cuadro tardó entre 26 y 100 ms: más que eso es el navegador
+       frenando la pestaña, no un equipo lento. */
+    if (crudo < .1){
+      ema = ema*.95 + crudo*.05;
+      if (++cuenta > 90 && ema > .026 && lim > P.length*.4){ lim = Math.floor(lim*.75); cuenta = 0; }
+    }
+
+    if (leyendo && sc === 1) return;        /* nota abierta: todo apagado, el bucle descansa */
+    raf = requestAnimationFrame(cuadro);
+  }
+
+  function despertar(){
+    if (raf || quieto || !activo()) return;
+    tPrev = performance.now()/1000;
+    raf = requestAnimationFrame(cuadro);
+  }
+
+  /* ---------- Medidas ---------- */
+  function medir(){
+    var r = cab.getBoundingClientRect();
+    W = Math.max(1, r.width); H = Math.max(1, r.height);
+    dpr = Math.min(2, window.devicePixelRatio || 1);
+    cv.width = Math.round(W*dpr); cv.height = Math.round(H*dpr);
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+    if (W >= 900){
+      var inr = cab.querySelector('.masthead-in').getBoundingClientRect();
+      eyeW = Math.min(500, W*.4);
+      cx = (inr.right - r.left) - eyeW/2 - 8;
+      cy = H*.42;
+    } else {
+      var m = marcador.getBoundingClientRect();
+      eyeW = m.width;
+      cx = m.left - r.left + m.width/2;
+      cy = m.top - r.top + m.height/2;
+    }
+    S = eyeW/120;
+    kk = clamp(S/4.3, .55, 1.15);
+    DISP = Math.max(eyeW*.9, 380);
+    RM = R_MOUSE*kk; RM2 = RM*RM;
+
+    var dn = W >= 900 ? 1.5 : (W >= 600 ? 1.1 : .75);
+    if (dn !== D){ D = dn; crear(D); lim = P.length; colocar(); }
+    var na = W >= 900 ? 150 : (W >= 600 ? 90 : 45);
+    if (!AMB.length || Math.abs(AMB.length-na) > na*.25) ambiente(na);
+  }
+
+  function refrescar(){
+    if (quieto) paso(0, 0, true); else despertar();
+  }
+
+  /* ---------- Eventos ---------- */
+  function parpadear(){ b0 = performance.now()/1000; b1 = -9; }
+
+  function impulso(){
+    for (var i=0;i<P.length;i++){
+      var p = P[i], v = (130 + p.R*120)*kk;
+      p.vx += p.ex*v; p.vy += p.ey*v;
+    }
+  }
+
+  function cambioModo(){
+    var m = lista.dataset.filtro || 'todo';
+    if (m === modo) return;
+    modo = m;
+    desde = cur.map(copia);
+    if (m === 'todo') hasta = BASE.map(copia);
+    else {
+      var cc = BASE[CAT[m]];
+      hasta = [copia(cc), mezcla(cc,[255,255,255],.5), copia(cc), copia(cc), copia(cc)];
+    }
+    if (quieto){ cur = hasta.map(copia); tw = 1; }
+    else { tw = 0; parpadear(); impulso(); }
+    refrescar();
+  }
+
+  new MutationObserver(cambioModo).observe(lista, {attributes:true, attributeFilter:['data-filtro']});
+  new MutationObserver(function(){
+    if (quieto) cv.style.opacity = document.body.classList.contains('leyendo') ? 0 : 1;
+    else despertar();
+  }).observe(document.body, {attributes:true, attributeFilter:['class']});
+
+  if (hayMouse && !quieto){
+    window.addEventListener('mousemove', function(e){
+      var r = cab.getBoundingClientRect();
+      mx = e.clientX - r.left; my = e.clientY - r.top;
+      mouseOn = true; tMouse = performance.now()/1000;
+      despertar();
+    }, {passive:true});
+    document.addEventListener('mouseleave', function(){ mouseOn = false; });
+  }
+
+  if ('IntersectionObserver' in window){
+    new IntersectionObserver(function(es){
+      visible = es[0].isIntersecting;
+      if (visible) despertar();
+    }).observe(cab);
+  }
+  document.addEventListener('visibilitychange', despertar);
+
+  if ('ResizeObserver' in window){
+    new ResizeObserver(function(){ medir(); refrescar(); }).observe(cab);
+  } else {
+    window.addEventListener('resize', function(){ medir(); refrescar(); });
+  }
+
+  medir();
+  if (quieto){
+    cv.style.opacity = document.body.classList.contains('leyendo') ? 0 : 1;
+    paso(0, 0, true);
+  } else despertar();
 })();
 </script>
 </body>
